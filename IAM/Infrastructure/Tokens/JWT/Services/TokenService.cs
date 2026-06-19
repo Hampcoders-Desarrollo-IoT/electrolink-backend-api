@@ -40,7 +40,8 @@ public class TokenService(IOptions<TokenSettings> tokenSettings, ILogger<TokenSe
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.Value),
-            new(ClaimTypes.Email, user.Email.Value)
+            new(ClaimTypes.Email, user.Email.Value),
+            new(ClaimTypes.Role, user.Role.ToString())
         };
 
         if (profileClaims.HasValue)
