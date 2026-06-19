@@ -11,7 +11,8 @@ public class DeviceReadingStream : BaseAggregateRoot
     public StreamId     StreamId   { get; private set; }
     public DeviceId    DeviceId   { get; private set; }
     public PropertyId  PropertyId { get; private set; }
-    public HomeownerId    HomeownerId   { get; private set; }
+    public ClientIdentity Owner   { get; private set; }
+    public HomeownerId HomeownerId => Owner.ToHomeownerId();
 
     public EStreamStatus StreamStatus { get; private set; }
     public DateTime      LastReceivedAt { get; private set; }
@@ -29,7 +30,7 @@ public class DeviceReadingStream : BaseAggregateRoot
     public static DeviceReadingStream Create(
         DeviceId deviceId,
         PropertyId propertyId,
-        HomeownerId homeownerId,
+        ClientIdentity owner,
         ThresholdConfig? customThresholds = null)
     {
         var stream = new DeviceReadingStream
@@ -37,7 +38,7 @@ public class DeviceReadingStream : BaseAggregateRoot
             StreamId              = StreamId.NewId(),
             DeviceId              = deviceId,
             PropertyId            = propertyId,
-            HomeownerId              = homeownerId,
+            Owner              = owner,
             StreamStatus          = EStreamStatus.Active,
             LastReceivedAt        = DateTime.UtcNow,
             CustomThresholds      = customThresholds ?? ThresholdConfig.Default(),
@@ -77,12 +78,12 @@ public class DeviceReadingStream : BaseAggregateRoot
                 DateTime.UtcNow));
 
             RaiseDomainEvent(new DeviceReconnectedEvent(
-                DeviceId.Value, PropertyId.Value, HomeownerId.Value, DateTime.UtcNow));
+                DeviceId.Value, PropertyId.Value, Owner.ClientId, DateTime.UtcNow));
         }
 
         RaiseDomainEvent(new ReadingIngestedEvent(
             StreamId.Value, DeviceId.Value, PropertyId.Value,
-            HomeownerId.Value, reading.ReadingId.Value,
+            Owner.ClientId, reading.ReadingId.Value,
             reading.Timestamp, reading.Source.ToString(),
             DateTime.UtcNow));
 
@@ -121,7 +122,7 @@ public class DeviceReadingStream : BaseAggregateRoot
             DateTime.UtcNow));
 
         RaiseDomainEvent(new DeviceDisconnectedEvent(
-            DeviceId.Value, PropertyId.Value, HomeownerId.Value,
+            DeviceId.Value, PropertyId.Value, Owner.ClientId,
             LastReceivedAt, DateTime.UtcNow));
     }
 

@@ -12,8 +12,15 @@ public class Technician
   public IReadOnlyList<ESpecialty> Specialties => _specialtyEntities.Select(e => e.Specialty).ToList().AsReadOnly();
   public int ExperienceYears { get; private set; }
   public ServiceArea ServiceArea { get; private set; } = null!;
+  public bool IsIoTCertified { get; private set; }
+  public CertificationData? IoTCertification { get; private set; }
 
   public string AboutMe { get; private set; } = string.Empty;
+  public double AverageRating { get; private set; }
+  public int ActiveServiceCount { get; private set; }
+
+  private List<PortfolioItem> _portfolioItems = new();
+  public IReadOnlyList<PortfolioItem> PortfolioItems => _portfolioItems.AsReadOnly();
 
   private List<TechnicianSpecialty> _specialtyEntities = new();
 
@@ -63,5 +70,28 @@ public class Technician
   public void UpdateServiceArea(double lat, double lon, double radiusKm)
   {
     ServiceArea = ServiceArea.FromPointAndRadius(lat, lon, radiusKm);
+  }
+
+  public void UpdateRating(int newRating)
+  {
+    ActiveServiceCount++;
+    AverageRating = ((AverageRating * (ActiveServiceCount - 1)) + newRating) / ActiveServiceCount;
+  }
+
+  public void AddPortfolioItem(PortfolioItem item)
+  {
+    _portfolioItems.Add(item);
+  }
+
+  public void GrantIoTCertification(CertificationData certification)
+  {
+    IsIoTCertified = true;
+    IoTCertification = certification;
+  }
+
+  public void RevokeIoTCertification()
+  {
+    IsIoTCertified = false;
+    IoTCertification = null;
   }
 }

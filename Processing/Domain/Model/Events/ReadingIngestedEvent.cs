@@ -6,7 +6,7 @@ public record ReadingIngestedEvent(
     string   StreamId,
     string   DeviceId,
     string   PropertyId,
-    string   HomeownerId,
+    string   OwnerId,
     string   ReadingId,
     DateTime ReadingTimestamp,
     string   Source,

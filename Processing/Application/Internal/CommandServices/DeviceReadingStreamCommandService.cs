@@ -6,6 +6,7 @@ using Hampcoders.Electrolink.API.Processing.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Processing.Domain.Repositories;
 using Hampcoders.Electrolink.API.Processing.Domain.Services;
 using Hampcoders.Electrolink.API.Processing.Application.Internal.OutboundServices;
+using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Shared.Domain.Repositories;
 using MediatR;
 
@@ -168,7 +169,7 @@ public class DeviceReadingStreamCommandService(
 
     public async Task Handle(UpdateCustomThresholdsCommand command)
     {
-        var streams = await streamRepository.FindByHomeownerIdAsync(command.HomeownerId);
+        var streams = await streamRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(command.OwnerId));
 
         foreach (var stream in streams)
         {
@@ -182,7 +183,7 @@ public class DeviceReadingStreamCommandService(
         }
 
         await unitOfWork.CompleteAsync();
-        logger.LogInformation("[IoT] ThresholdsUpdated for HomeownerId: {HomeownerId}", command.HomeownerId);
+        logger.LogInformation("[IoT] ThresholdsUpdated for OwnerId: {OwnerId}", command.OwnerId);
     }
 
     public async Task Handle(PauseDeviceStreamCommand command)

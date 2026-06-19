@@ -11,6 +11,8 @@ using Hampcoders.Electrolink.API.Shared.Infrastructure.Interfaces;
 
 namespace Hampcoders.Electrolink.API.Assets.Application.Internal.CommandServices;
 
+using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
+
 public class PropertyCommandService(
     IPropertyRepository propertyRepository,
     IUnitOfWork unitOfWork,
@@ -21,7 +23,7 @@ public class PropertyCommandService(
     private const string PropertyPhotoFolder = "electrolink/assets/properties";
     public async Task<Property?> Handle(CreatePropertyCommand command)
     {
-        var property = Property.Create(command.HomeownerId, command.Address, command.Geolocation);
+        var property = Property.Create(command.Owner, command.Address, command.Geolocation, command.PropertyType);
         await propertyRepository.AddAsync(property);
         await unitOfWork.CompleteAsync();
         
@@ -47,7 +49,7 @@ public class PropertyCommandService(
 
     public async Task<SignedUploadData> Handle(GetPropertyPhotoUploadUrlCommand command)
     {
-        var property = await propertyRepository.FindByIdAndOwnerIdAsync(command.PropertyId, command.HomeownerId);
+        var property = await propertyRepository.FindByIdAndOwnerAsync(command.PropertyId, command.Owner);
         if (property is null) throw new AssetNotFoundException("Property", command.PropertyId.Value);
 
         return await fileStorageService.GetSignedUploadUrlForPropertyPhotoAsync(command.PropertyId.Value);
@@ -55,7 +57,7 @@ public class PropertyCommandService(
 
     public async Task<Property?> Handle(RegisterPropertyPhotoCommand command)
     {
-        var property = await propertyRepository.FindByIdAndOwnerIdAsync(command.PropertyId, command.HomeownerId);
+        var property = await propertyRepository.FindByIdAndOwnerAsync(command.PropertyId, command.Owner);
         if (property is null) throw new AssetNotFoundException("Property", command.PropertyId.Value);
 
         try
@@ -81,7 +83,7 @@ public class PropertyCommandService(
 
     public async Task<Property?> Handle(SetPropertyMainPhotoCommand command)
     {
-        var property = await propertyRepository.FindByIdAndOwnerIdAsync(command.PropertyId, command.HomeownerId);
+        var property = await propertyRepository.FindByIdAndOwnerAsync(command.PropertyId, command.Owner);
         if (property is null) throw new AssetNotFoundException("Property", command.PropertyId.Value);
 
         property.SetMainPhoto(command.ProviderId);
@@ -179,7 +181,7 @@ public class PropertyCommandService(
     
     public async Task<Property?> Handle(UpdatePropertyCommand command)
     {
-        var property = await propertyRepository.FindByIdAndOwnerIdAsync(command.PropertyId, command.HomeownerId);
+        var property = await propertyRepository.FindByIdAndOwnerAsync(command.PropertyId, command.Owner);
         if (property is null) return null;
 
         property.UpdateAddress(command.Address);

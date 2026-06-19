@@ -6,11 +6,11 @@ namespace Hampcoders.Electrolink.API.Assets.Domain.Repositories;
 
 public interface IPropertyRepository : IBaseRepository<Property, PropertyId>
 {
-    Task<IEnumerable<Property>> FindByHomeownerIdAsync(HomeownerId homeownerId);
-    Task<Property?> FindByIdAndOwnerIdAsync(PropertyId propertyId, HomeownerId homeownerId);
+    Task<IEnumerable<Property>> FindByOwnerAsync(ClientIdentity owner);
+    Task<Property?> FindByIdAndOwnerAsync(PropertyId propertyId, ClientIdentity owner);
     
     Task<IEnumerable<Property>> GetAllFilteredAsync(
-        HomeownerId ownerId, 
+        ClientIdentity owner, 
         string? city, 
         string? street
     );
@@ -18,5 +18,5 @@ public interface IPropertyRepository : IBaseRepository<Property, PropertyId>
     Task<(IEnumerable<Property> Items, int TotalCount)> GetAllPaginatedAsync(int page, int pageSize);
 
     Task<(IEnumerable<Property> Items, int TotalCount)> GetAllFilteredPaginatedAsync(
-        HomeownerId ownerId, string? city, string? street, int page, int pageSize);
+        ClientIdentity owner, string? city, string? street, int page, int pageSize);
 }

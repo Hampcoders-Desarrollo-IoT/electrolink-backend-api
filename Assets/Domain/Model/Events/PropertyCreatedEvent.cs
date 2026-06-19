@@ -5,7 +5,13 @@ using PropertyId = Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects.P
 
 namespace Hampcoders.Electrolink.API.Assets.Domain.Model.Events;
 
-public record PropertyCreatedEvent(PropertyId PropertyId, HomeownerId HomeownerId, Address Address, Geolocation Geolocation, DateTime OccurredOn
+public record PropertyCreatedEvent(
+    PropertyId PropertyId,
+    ClientIdentity Owner,
+    Address Address,
+    Geolocation Geolocation,
+    EPropertyType PropertyType,
+    DateTime OccurredOn
 ) : IEvent
 {
     public Guid EventId { get; init; } = Guid.NewGuid();

@@ -6,9 +6,9 @@ namespace Hampcoders.Electrolink.API.IAM.Interfaces.ACL.Services;
 
 public class IamContextFacade(IUserCommandService userCommandService, IUserQueryService userQueryService) : IIamContextFacade
 {
-    public async Task<string> CreateUser(string email, string password, string passwordConfirmation)
+    public async Task<string> CreateUser(string email, string password, string passwordConfirmation, string role = "User")
     {
-        var signUpCommand = new SignUpCommand(email, password, passwordConfirmation);
+        var signUpCommand = new SignUpCommand(email, password, passwordConfirmation, role);
         await userCommandService.Handle(signUpCommand);
         var getUserByEmailQuery = new GetUserByEmailQuery(email);
         var result = await userQueryService.Handle(getUserByEmailQuery);

@@ -11,11 +11,11 @@ public class ServiceCompletedEventHandler(
     public async Task Handle(ServiceCompletedIntegrationEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("[Analytics BC] ServiceCompleted: homeowner={HomeownerId}, service={ServiceId}, tech={TechnicianId}",
-            notification.HomeownerId, notification.ServiceId, notification.TechnicianId);
+            notification.OwnerId, notification.ServiceId, notification.TechnicianId);
 
         await technicianMetricsCommandService.UpdateTechnicianMetricsAsync(
             notification.TechnicianId,
-            notification.HomeownerId,
+            notification.OwnerId,
             notification.ServiceRevenue,
             notification.Currency,
             notification.ResponseTime,

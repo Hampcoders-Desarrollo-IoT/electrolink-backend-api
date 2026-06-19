@@ -3,6 +3,7 @@ using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Commands;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Services;
 using MediatR;
+using ProfileId = Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects.ProfileId;
 
 namespace Hampcoders.Electrolink.API.Subscriptions.Application.Internal.EventHandlers;
 
@@ -13,7 +14,7 @@ public class ProfileCompletedEventHandler(ISubscriptionCommandService commandSer
     {
         await commandService.Handle(new CreateSubscriptionCommand(
             UserId: UserId.From(notification.UserId),
-            BusinessRole: notification.BusinessRole.ToString().ToUpperInvariant()));
+            ProfileId: ProfileId.From(notification.ProfileId)));
     }
 }
 

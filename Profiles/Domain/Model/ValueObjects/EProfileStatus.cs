@@ -5,5 +5,6 @@ public enum EProfileStatus
     Incomplete,
     Active,
     Deactivated,
-    Rejected
+    Rejected,
+    Suspended
 }

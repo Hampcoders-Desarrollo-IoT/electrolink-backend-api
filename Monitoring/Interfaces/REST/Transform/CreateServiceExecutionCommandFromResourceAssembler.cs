@@ -2,6 +2,7 @@
 using Hampcoders.Electrolink.API.Monitoring.Interfaces.REST.Resources;
 using Hampcoders.Electrolink.API.Planning.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
+using ClientIdentity = Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects.ClientIdentity;
 using RecipeSnapshot = Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects.RecipeSnapshot;
 using RequestId = Hampcoders.Electrolink.API.Monitoring.Domain.Model.ValueObjects.RequestId;
 
@@ -17,7 +18,7 @@ public static class CreateServiceExecutionCommandFromResourceAssembler
             AssignmentId.From(resource.AssignmentId),
             RequestId.From(resource.RequestId),
             TechnicianId.From(resource.TechnicianId),
-            HomeownerId.From(resource.HomeownerId),
+            ClientIdentity.FromHomeowner(resource.OwnerId),
             PropertyId.From(resource.PropertyId),
             RecipeSnapshot.Create(
                 RecipeId.From(resource.RecipeSnapshot.RecipeId),

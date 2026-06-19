@@ -5,6 +5,6 @@ namespace Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Commands;
 /// User action via dashboard/API.
 /// </summary>
 public record CancelSubscriptionCommand(
-    string UserId,
+    string ProfileId,
     string Reason,
     string? Feedback);

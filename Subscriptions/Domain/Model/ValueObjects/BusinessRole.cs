@@ -3,7 +3,8 @@
 public enum EBusinessRole
 {
     Technician,
-    Homeowner
+    Homeowner,
+    Company
 }
 
 public record BusinessRole
@@ -17,6 +18,7 @@ public record BusinessRole
 
     public static BusinessRole Technician => new(EBusinessRole.Technician);
     public static BusinessRole Homeowner => new(EBusinessRole.Homeowner);
+    public static BusinessRole Company => new(EBusinessRole.Company);
 
     public static BusinessRole From(string value)
     {
@@ -27,6 +29,7 @@ public record BusinessRole
         {
             "TECHNICIAN" => Technician,
             "HOMEOWNER" => Homeowner,
+            "COMPANY" => Company,
             _ => throw new ArgumentException($"Invalid BusinessRole: {value}")
         };
     }

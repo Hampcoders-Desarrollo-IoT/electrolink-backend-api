@@ -7,5 +7,5 @@ namespace Hampcoders.Electrolink.API.Analytics.Domain.Repositories;
 
 public interface IConsumptionReportRepository : IBaseRepository<ConsumptionReport, ConsumptionReportId>
 {
-    Task<List<ConsumptionReport>> FindByHomeownerIdAsync(HomeownerId homeownerId);
+    Task<List<ConsumptionReport>> FindByOwnerAsync(ClientIdentity owner);
 }

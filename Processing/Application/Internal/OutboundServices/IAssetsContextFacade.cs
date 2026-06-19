@@ -6,4 +6,4 @@ public interface IAssetsContextFacade
     Task<bool> ValidateApiKeyAsync(string deviceId, string apiKeyHash);
 }
 
-public record DeviceInfoDto(string DeviceId, string Status, string PropertyId, string HomeownerId);
+public record DeviceInfoDto(string DeviceId, string Status, string PropertyId, string OwnerId);

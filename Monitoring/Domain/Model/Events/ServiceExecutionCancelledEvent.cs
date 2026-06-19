@@ -12,7 +12,7 @@ public record ServiceExecutionCancelledEvent(
     AssignmentId AssignmentId,
     RequestId RequestId,
     TechnicianId TechnicianId,
-    HomeownerId HomeownerId,
+    ClientIdentity Owner,
     ECancelledBy CancelledBy,
     string Reason,
     string? Notes,

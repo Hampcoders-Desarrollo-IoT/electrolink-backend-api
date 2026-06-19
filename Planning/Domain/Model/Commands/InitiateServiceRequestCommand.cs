@@ -2,5 +2,5 @@
 
 namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Commands;
 
-public record InitiateServiceRequestCommand(HomeownerId HomeownerId);
+public record InitiateServiceRequestCommand(ClientIdentity Client);
 

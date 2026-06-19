@@ -18,9 +18,9 @@ public class ServiceExecutionRepository(AppDbContext context)
             .Include(se => se.ComponentSubstitutions)
             .ToListAsync();
 
-    public async Task<IEnumerable<ServiceExecution>> FindByHomeownerIdAsync(HomeownerId homeownerId)
+    public async Task<IEnumerable<ServiceExecution>> FindByOwnerAsync(ClientIdentity owner)
         => await Context.Set<ServiceExecution>()
-            .Where(se => se.HomeownerId == homeownerId)
+            .Where(se => se.Owner == owner)
             .Include(se => se.WorkPhotos)
             .Include(se => se.ComponentSubstitutions)
             .ToListAsync();
@@ -41,9 +41,9 @@ public class ServiceExecutionRepository(AppDbContext context)
             .Include(se => se.ComponentSubstitutions)
             .ToListAsync();
 
-    public async Task<ServiceExecution?> FindActiveByHomeownerIdAsync(HomeownerId homeownerId)
+    public async Task<ServiceExecution?> FindActiveByOwnerAsync(ClientIdentity owner)
         => await Context.Set<ServiceExecution>()
-            .Where(se => se.HomeownerId == homeownerId
+            .Where(se => se.Owner == owner
                       && (se.Status == EExecutionStatus.Notified
                        || se.Status == EExecutionStatus.EnRoute
                        || se.Status == EExecutionStatus.Arrived

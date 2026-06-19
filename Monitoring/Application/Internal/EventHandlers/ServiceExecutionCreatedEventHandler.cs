@@ -11,7 +11,7 @@ public class ServiceExecutionCreatedEventHandler(ILogger<ServiceExecutionCreated
     {
         logger.LogInformation(
             "[Monitoring BC] ServiceExecution {ExecutionId} created for homeowner {HomeownerId}.",
-            notification.ExecutionId.Value, notification.HomeownerId.Value);
+            notification.ExecutionId.Value, notification.Owner.ClientId);
         await Task.CompletedTask;
     }
 }

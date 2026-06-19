@@ -8,13 +8,14 @@ namespace Hampcoders.Electrolink.API.Assets.Domain.Model.Aggregates;
 public class Property : BaseAggregateRoot
 {
     public PropertyId Id { get; private set; } = null!;
-    public HomeownerId OwnerId { get; private set; } = null!;
+    public ClientIdentity Owner { get; private set; } = null!;
     public Address Address { get; private set; } = null!;
     public Geolocation Geolocation { get; private set; } = null!;
     public EPropertyStatus Status { get; private set; }
     public bool IsActive { get; private set; } = true;
     public string? MainPhotoProviderId { get; private set; }
-    
+    public EPropertyType PropertyType { get; private set; }
+
     private readonly List<PropertyPhoto> _photos = new();
     public IReadOnlyCollection<PropertyPhoto> Photos => _photos.AsReadOnly();
 
@@ -24,25 +25,26 @@ public class Property : BaseAggregateRoot
 
     private Property() { }
     
-    public static Property Create(HomeownerId ownerId, Address address, Geolocation geolocation)
+    public static Property Create(ClientIdentity owner, Address address, Geolocation geolocation, EPropertyType propertyType = EPropertyType.Residential)
     {
-        if (ownerId is null || string.IsNullOrWhiteSpace(ownerId.Value))
-            throw new ArgumentException("OwnerId must be valid.");
+        if (owner is null || string.IsNullOrWhiteSpace(owner.ClientId))
+            throw new ArgumentException("Owner must be valid.");
         if (address is null)    throw new ArgumentNullException(nameof(address));
         if (geolocation is null) throw new ArgumentNullException(nameof(geolocation));
 
         var property = new Property
         {
             Id = PropertyId.NewPropertyId(),
-            OwnerId = ownerId,
+            Owner = owner,
             Address = address,
             Geolocation = geolocation,
             Status = EPropertyStatus.Created,
             IsActive = true,
             HasActiveIoTMonitoring = false,
+            PropertyType = propertyType,
         };
 
-        property.RaiseDomainEvent(new PropertyCreatedEvent(property.Id, property.OwnerId, property.Address, property.Geolocation, DateTime.UtcNow));
+        property.RaiseDomainEvent(new PropertyCreatedEvent(property.Id, property.Owner, property.Address, property.Geolocation, property.PropertyType, DateTime.UtcNow));
 
         return property;
     }
@@ -59,7 +61,7 @@ public class Property : BaseAggregateRoot
         var previous = Geolocation;
         Geolocation  = newGeolocation;
         RaiseDomainEvent(new PropertyGeolocationUpdatedEvent(
-            Id, OwnerId, previous, newGeolocation, DateTime.UtcNow));
+            Id, Owner, previous, newGeolocation, DateTime.UtcNow));
     }
     internal void Activate()
     {
@@ -85,7 +87,7 @@ public class Property : BaseAggregateRoot
         if (Status == EPropertyStatus.Archived) return;
         Status   = EPropertyStatus.Archived;
         IsActive = false;
-        RaiseDomainEvent(new PropertyArchivedEvent(Id, OwnerId, reason, DateTime.UtcNow));
+        RaiseDomainEvent(new PropertyArchivedEvent(Id, Owner, reason, DateTime.UtcNow));
     }
     
     internal void RecordMaintenance(AssignmentId assignmentId, TechnicianId technicianId, string workSummary, DateTime completedAt)

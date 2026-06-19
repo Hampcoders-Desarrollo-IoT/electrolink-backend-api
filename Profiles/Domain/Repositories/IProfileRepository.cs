@@ -33,16 +33,28 @@ public interface IProfileRepository : IBaseRepository<Profile, ProfileId>
   Task<bool>DniExistsAsync(Dni dni, ProfileId? excludeProfileId = null);
   
   /// <summary>
+  /// Checks if a Tax ID is already associated with a profile.
+  /// </summary>
+  Task<bool>TaxIdExistsAsync(TaxId taxId, ProfileId? excludeProfileId = null);
+   
+  /// <summary>
   /// Checks if the homeowner associated with the given homeowner ID is active.
   /// </summary>
-  /// <param name="homeownerId"></param>
-  /// <returns></returns>
   Task<bool>IsHomeownerActiveAsync(HomeownerId homeownerId);
-  
+   
+  /// <summary>
+  /// Checks if the company associated with the given company ID is active.
+  /// </summary>
+  Task<bool>IsCompanyActiveAsync(CompanyId companyId);
+   
   Task<IEnumerable<Profile>> FindByRoleAsync(EBusinessRole role);
 
   Task<Profile?> FindByTechnicianIdAsync(TechnicianId technicianId);
-  
+   
+  Task<Profile?> FindByCompanyIdAsync(CompanyId companyId);
+
+  Task<Profile?> FindByHomeownerIdAsync(HomeownerId homeownerId);
+   
   Task<IEnumerable<(string technicianId, string profileId, string fullName)>> FindTechniciansInAreaAsync(double lat, double lon);
-  Task<(string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId)?> FindProfileClaimsByUserIdAsync(UserId userId);
+  Task<(string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId, string? SubscriptionTier)?> FindProfileClaimsByUserIdAsync(UserId userId);
 }

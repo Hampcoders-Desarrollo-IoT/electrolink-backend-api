@@ -45,11 +45,11 @@ public class ConsumptionReportController(
     {
         try
         {
-            var eligibility = await subscriptionFacade.GetRequestEligibilityAsync(resource.HomeownerId);
+            var eligibility = await subscriptionFacade.GetRequestEligibilityAsync(resource.OwnerId);
             var planTier = eligibility.planType;
 
             var reportId = await commandService.RequestConsumptionReportAsync(
-                resource.HomeownerId,
+                resource.OwnerId,
                 resource.PropertyId,
                 resource.PeriodStart,
                 resource.PeriodEnd,

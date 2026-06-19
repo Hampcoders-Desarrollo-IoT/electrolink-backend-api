@@ -7,11 +7,11 @@ public record ComponentId
 
     private ComponentId(string value) => Value = value;
 
-    public static ComponentId NewComponentId() => new($"comp-{Guid.NewGuid()}");
+    public static ComponentId NewComponentId() => new($"cmpt-{Guid.NewGuid()}");
 
     public static ComponentId From(string value)
     {
-        if (string.IsNullOrWhiteSpace(value) || !value.StartsWith("comp-"))
+        if (string.IsNullOrWhiteSpace(value) || !value.StartsWith("cmpt-"))
             throw new InvalidIdException("ComponentId", value);
         return new ComponentId(value);
     }

@@ -4,7 +4,7 @@ using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Events;
 
 public record ServiceRequestLimitReachedEvent(
-    HomeownerId HomeownerId, 
+    ClientIdentity Client, 
     string PlanType,
     int MonthlyLimit,
     int CurrentUsage,

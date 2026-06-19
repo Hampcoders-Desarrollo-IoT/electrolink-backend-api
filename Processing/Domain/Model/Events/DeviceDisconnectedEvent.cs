@@ -5,7 +5,7 @@ namespace Hampcoders.Electrolink.API.Processing.Domain.Model.Events;
 public record DeviceDisconnectedEvent(
     string   DeviceId,
     string   PropertyId,
-    string   HomeownerId,
+    string   OwnerId,
     DateTime LastSeenAt,
     DateTime OccurredAt) : IEvent
 {

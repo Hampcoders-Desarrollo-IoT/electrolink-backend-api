@@ -30,7 +30,7 @@ public class ConsumptionReportCommandService(
         ValidatePeriodAgainstPlan(periodStart, plan);
 
         var report = ConsumptionReport.Request(
-            HomeownerId.From(homeownerId),
+            ClientIdentity.FromHomeowner(homeownerId),
             PropertyId.From(propertyId),
             periodStart,
             periodEnd,

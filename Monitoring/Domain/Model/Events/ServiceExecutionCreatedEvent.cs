@@ -8,7 +8,7 @@ public record ServiceExecutionCreatedEvent(
     ServiceExecutionId ExecutionId,
     AssignmentId AssignmentId,
     TechnicianId TechnicianId,
-    HomeownerId HomeownerId,
+    ClientIdentity Owner,
     DateTime OccurredOn) : IEvent
 {
     public Guid EventId { get; init; } = Guid.NewGuid();

@@ -11,6 +11,14 @@ public class HomeOwner
   public EContactTime PreferredContactTime { get; private set; }
   public CommunicationPreferences CommunicationPreferences { get; private set; }
   public EmergencyContact? EmergencyContact { get; private set; }
+  public double AverageRating { get; private set; }
+  public int ActiveServiceCount { get; private set; }
+
+  public void UpdateRating(int newRating)
+  {
+      ActiveServiceCount++;
+      AverageRating = ((AverageRating * (ActiveServiceCount - 1)) + newRating) / ActiveServiceCount;
+  }
 
   private HomeOwner() { }
 

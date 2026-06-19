@@ -11,10 +11,10 @@ namespace Hampcoders.Electrolink.API.Analytics.Infrastructure.Persistence.EFC.Re
 public class AlertLogRepository(AppDbContext context)
     : BaseRepository<AlertLog, AlertLogId>(context), IAlertLogRepository
 {
-    public async Task<AlertLog?> FindByHomeownerIdAsync(HomeownerId homeownerId)
+    public async Task<AlertLog?> FindByOwnerAsync(ClientIdentity owner)
     {
         return await Context.Set<AlertLog>()
             .Include(l => l.Entries)
-            .FirstOrDefaultAsync(l => l.HomeownerId.Value == homeownerId.Value);
+            .FirstOrDefaultAsync(l => l.Owner.ClientId == owner.ClientId && l.Owner.ClientType == owner.ClientType);
     }
 }

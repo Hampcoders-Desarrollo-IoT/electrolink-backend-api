@@ -8,7 +8,7 @@ public record ServiceStatusChangedEvent(
     ServiceExecutionId ExecutionId,
     AssignmentId AssignmentId,
     TechnicianId TechnicianId,
-    HomeownerId HomeownerId,
+    ClientIdentity Owner,
     EExecutionStatus PreviousStatus,
     EExecutionStatus NewStatus,
     DateTime Timestamp,

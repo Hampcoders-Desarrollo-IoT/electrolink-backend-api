@@ -64,6 +64,7 @@
       <Folder Include="Analytics\Infrastructure\" />
       <Folder Include="Analytics\Interfaces\" />
       <Folder Include="Assets\Application\Internal\OutboundServices\" />
+      <Folder Include="docs\apis\" />
       <Folder Include="docs\output\" />
       <Folder Include="Planning\Application\" />
       <Folder Include="Planning\Domain\" />

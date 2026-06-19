@@ -8,7 +8,7 @@ public static class GetPropertyPhotoUploadUrlCommandFromResourceAssembler
     public static GetPropertyPhotoUploadUrlCommand ToCommand(string homeownerId, string propertyId)
     {
         return new GetPropertyPhotoUploadUrlCommand(
-            HomeownerId.From(homeownerId),
+            ClientIdentity.FromHomeowner(homeownerId),
             PropertyId.From(propertyId));
     }
 }

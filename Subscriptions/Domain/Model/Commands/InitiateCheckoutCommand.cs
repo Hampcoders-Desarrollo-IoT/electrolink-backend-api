@@ -1,7 +1,7 @@
 namespace Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Commands;
 
 public record InitiateCheckoutCommand(
-    string UserId,
+    string ProfileId,
     string PlanType,
     string BillingCycle,
     string SuccessUrl,

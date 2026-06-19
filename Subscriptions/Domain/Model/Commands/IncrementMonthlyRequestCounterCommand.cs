@@ -5,4 +5,4 @@ namespace Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Commands;
 /// Called by ServiceRequestCreatedEventHandler when Planning BC publishes ServiceRequestCreated.
 /// </summary>
 public record IncrementMonthlyRequestCounterCommand(
-    string UserId);
+    string ProfileId);

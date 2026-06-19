@@ -17,7 +17,7 @@ public static class PropertyPortfolioResourceFromEntityAssembler
 
         return new PropertyPortfolioResource(
             portfolio.Id.Value,
-            portfolio.HomeownerId.Value,
+            portfolio.Owner.ClientId,
             portfolio.Status.ToString(),
             entries);
     }

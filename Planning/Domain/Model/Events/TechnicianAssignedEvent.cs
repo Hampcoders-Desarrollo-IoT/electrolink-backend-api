@@ -8,7 +8,7 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Events;
 public record TechnicianAssignedEvent(
     RequestId RequestId,
     TechnicianId TechnicianId,
-    HomeownerId HomeownerId,
+    ClientIdentity Client,
     RecipeId ServiceId,
     DateOnly ScheduledDate,
     DateTime OccurredOn

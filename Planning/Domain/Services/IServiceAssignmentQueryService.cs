@@ -7,7 +7,7 @@ public interface IServiceAssignmentQueryService
 {
     Task<ServiceAssignment?> Handle(GetServiceAssignmentByIdQuery query);
     Task<IEnumerable<ServiceAssignment>> Handle(GetAssignmentsByTechnicianQuery query);
-    Task<IEnumerable<ServiceAssignment>> Handle(GetAssignmentsByHomeownerQuery query);
+    Task<IEnumerable<ServiceAssignment>> Handle(GetAssignmentsByClientQuery query);
     Task<ServiceAssignment?> Handle(GetAssignmentByRequestIdQuery query);
 }
 

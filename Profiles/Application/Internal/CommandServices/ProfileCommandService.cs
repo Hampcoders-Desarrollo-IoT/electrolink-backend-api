@@ -128,6 +128,56 @@ public class ProfileCommandService(
       return profile;
   }
 
+  public async Task<Profile> Handle(CompleteProfileAsCompanyCommand command)
+  {
+      var profile = await profileRepository.FindByUserIdAsync(
+          UserId.From(command.UserId));
+
+      if (profile is null)
+          throw new ArgumentException("Profile not found.");
+
+      var billingAddress = Address.Create(
+          command.BillingStreet,
+          command.BillingNumber,
+          command.BillingDistrict,
+          command.BillingCity,
+          command.BillingCountry,
+          command.BillingPostalCode);
+
+      var companyData = CompanyData.Create(
+          command.CompanyName,
+          TaxId.From(command.TaxId),
+          billingAddress,
+          command.Industry,
+          command.CompanySize,
+          command.Website);
+
+      PersonalData? personalData = null;
+      if (command.FirstName is not null && command.LastName is not null)
+      {
+          personalData = PersonalData.Create(
+              command.FirstName,
+              command.LastName,
+              PhoneNumber.From(command.PhoneNumber!),
+              Dni.From(command.Dni!),
+              DateOfBirth.From(command.DateOfBirth!),
+              Address.Create(
+                  command.Street ?? string.Empty,
+                  command.Number ?? string.Empty,
+                  command.District ?? string.Empty,
+                  command.City ?? string.Empty,
+                  command.Country ?? string.Empty,
+                  command.PostalCode ?? string.Empty));
+      }
+
+      await profile.CompleteAsCompany(companyData, uniquenessChecker, personalData);
+
+      profileRepository.Update(profile);
+      await unitOfWork.CompleteAsync();
+      await PublishAndClearEventsAsync(profile);
+      return profile;
+  }
+
   public async Task<Profile> Handle(UpdateProfilePersonalDataCommand command)
   {
       var profile = await profileRepository.FindByIdAsync(
@@ -326,6 +376,48 @@ public class ProfileCommandService(
       await PublishAndClearEventsAsync(profile);
   }
   
+  public async Task Handle(GrantIoTCertificationCommand command)
+  {
+      var technicianId = TechnicianId.From(command.TechnicianId);
+      var profile = await profileRepository.FindByTechnicianIdAsync(technicianId)
+          ?? throw new ArgumentException($"Technician {command.TechnicianId} not found.");
+
+      if (profile.Technician is null)
+          throw new ArgumentException($"Technician {command.TechnicianId} has no Technician entity.");
+
+      var certification = CertificationData.Create(
+          command.CertificationName,
+          command.IssuerOrganization,
+          command.DateObtained,
+          command.ExpirationDate,
+          command.CredentialId,
+          command.CredentialUrl);
+
+      profile.GrantIoTCertification(certification);
+      profileRepository.Update(profile);
+      await unitOfWork.CompleteAsync();
+      await PublishAndClearEventsAsync(profile);
+
+      logger.LogInformation("[Profiles] IoT Certification granted to Technician {TechnicianId}", command.TechnicianId);
+  }
+
+  public async Task Handle(RevokeIoTCertificationCommand command)
+  {
+      var technicianId = TechnicianId.From(command.TechnicianId);
+      var profile = await profileRepository.FindByTechnicianIdAsync(technicianId)
+          ?? throw new ArgumentException($"Technician {command.TechnicianId} not found.");
+
+      if (profile.Technician is null)
+          throw new ArgumentException($"Technician {command.TechnicianId} has no Technician entity.");
+
+      profile.RevokeIoTCertification();
+      profileRepository.Update(profile);
+      await unitOfWork.CompleteAsync();
+      await PublishAndClearEventsAsync(profile);
+
+      logger.LogInformation("[Profiles] IoT Certification revoked from Technician {TechnicianId}", command.TechnicianId);
+  }
+
   private async Task PublishAndClearEventsAsync(Profile profile)
   {
       foreach (var domainEvent in profile.DomainEvents)

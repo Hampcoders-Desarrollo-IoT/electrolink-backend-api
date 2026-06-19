@@ -20,4 +20,15 @@ public class ProfileUniquenessChecker(AppDbContext context) : IProfileUniqueness
         if (exists)
             throw new DniAlreadyInUseException(dni);
     }
+
+    public async Task EnsureTaxIdIsUniqueAsync(TaxId taxId, ProfileId excludedProfileId)
+    {
+        var exists = await context.Set<Profile>()
+            .AnyAsync(p => p.Company != null
+                      && p.Company.CompanyData.TaxId.Value == taxId.Value
+                      && p.ProfileId != excludedProfileId);
+
+        if (exists)
+            throw new TaxIdAlreadyInUseException(taxId);
+    }
 }

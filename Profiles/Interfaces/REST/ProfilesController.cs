@@ -3,6 +3,7 @@ using Hampcoders.Electrolink.API.Profiles.Domain.Model.Commands;
 using Hampcoders.Electrolink.API.Profiles.Domain.Model.Queries;
 using Hampcoders.Electrolink.API.Profiles.Domain.Services;
 using Hampcoders.Electrolink.API.Profiles.Infrastructure.Interfaces.ASP.Configuration.Extensions.Filters;
+using Hampcoders.Electrolink.API.Profiles.Interfaces.ACL;
 using Hampcoders.Electrolink.API.Profiles.Interfaces.REST.Resources;
 using Hampcoders.Electrolink.API.Profiles.Interfaces.REST.Transform;
 using Hampcoders.Electrolink.API.Shared.Infrastructure;
@@ -17,7 +18,8 @@ namespace Hampcoders.Electrolink.API.Profiles.Interfaces.REST;
 [SwaggerTag("Profile endpoints")]
 public class ProfilesController(
     IProfileCommandService commandService,
-    IProfileQueryService queryService) : BaseProfileController(commandService, queryService)
+    IProfileQueryService queryService,
+    IProfilesContextFacade profilesContextFacade) : BaseProfileController(commandService, queryService)
 {
     // GET api/v1/profiles/me
     [HttpGet("me")]
@@ -53,6 +55,20 @@ public class ProfilesController(
         [FromBody] CompleteProfileAsHomeownerResource resource)
     {
         var command = CompleteProfileAsHomeownerCommandFromResourceAssembler
+            .ToCommandFromResource(resource, UserId);
+        var profile = await CommandService.Handle(command);
+        return StatusCode(StatusCodes.Status201Created,
+            MyProfileResourceFromEntityAssembler.ToResourceFromEntity(profile));
+    }
+
+    // POST api/v1/profiles/me/complete/company
+    [HttpPost("me/complete/company")]
+    [SwaggerOperation(Summary = "Complete profile as company", OperationId = "CompleteAsCompany")]
+    [ProducesResponseType(typeof(MyProfileResource), StatusCodes.Status201Created)]
+    public async Task<IActionResult> CompleteAsCompany(
+        [FromBody] CompleteProfileAsCompanyResource resource)
+    {
+        var command = CompleteProfileAsCompanyCommandFromResourceAssembler
             .ToCommandFromResource(resource, UserId);
         var profile = await CommandService.Handle(command);
         return StatusCode(StatusCodes.Status201Created,
@@ -201,6 +217,19 @@ public class ProfilesController(
             .ToCommandFromResource(profileId, UserId, resource);
         var profile = await CommandService.Handle(command);
         return Ok(MyProfileResourceFromEntityAssembler.ToResourceFromEntity(profile));
+    }
+
+    // PUT api/v1/profiles/{profileId}/thresholds
+    [HttpPut("{profileId}/thresholds")]
+    [SwaggerOperation(Summary = "Set consumption thresholds", OperationId = "SetConsumptionThresholds")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetThresholds(
+        [FromRoute] string profileId,
+        [FromBody] SetThresholdsResource resource)
+    {
+        await profilesContextFacade.SetConsumptionThresholdsAsync(profileId, resource.Thresholds);
+        return NoContent();
     }
 
     // DELETE api/v1/profiles/me/photo

@@ -10,7 +10,7 @@ public record CreateServiceExecutionCommand(
     AssignmentId AssignmentId,
     RequestId RequestId,
     TechnicianId TechnicianId,
-    HomeownerId HomeownerId,
+    ClientIdentity Owner,
     PropertyId PropertyId,
     RecipeSnapshot RecipeSnapshot,
     DateTime ScheduledDateTime,

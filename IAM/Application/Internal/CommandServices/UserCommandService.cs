@@ -82,7 +82,14 @@ public class UserCommandService(
             throw new EmailAlreadyInUseException(Email.From(command.Email));
         
         var hash = HashedPassword.FromHash(hashingService.HashPassword(command.Password));
-        var user = User.Create(Email.From(command.Email), hash);
+        var role = Enum.TryParse<EUserRole>(command.Role, ignoreCase: true, out var parsedRole)
+            ? parsedRole
+            : EUserRole.User;
+
+        if (role != EUserRole.User)
+            throw new InvalidOperationException("Public registration only allows User role.");
+
+        var user = User.Create(Email.From(command.Email), hash, role);
         
         await userRepository.AddAsync(user);
         await unitOfWork.CompleteAsync();
@@ -129,5 +136,37 @@ public class UserCommandService(
 
         var profileClaims = await externalProfilesService.GetProfileClaimsAsync(user.Id.Value);
         return tokenService.GenerateToken(user, profileClaims);
+    }
+
+    public async Task Handle(SuspendUserAccountCommand command)
+    {
+        var user = await userRepository.FindByIdAsync(UserId.From(command.UserId))
+            ?? throw new ArgumentException($"User {command.UserId} not found.");
+
+        user.Suspend(command.Reason);
+        userRepository.Update(user);
+        await unitOfWork.CompleteAsync();
+
+        foreach (var domainEvent in user.DomainEvents)
+            await mediator.Publish(domainEvent);
+        user.ClearDomainEvents();
+
+        logger.LogInformation("[IAM] User {UserId} suspended: {Reason}", command.UserId, command.Reason);
+    }
+
+    public async Task Handle(ActivateUserAccountCommand command)
+    {
+        var user = await userRepository.FindByIdAsync(UserId.From(command.UserId))
+            ?? throw new ArgumentException($"User {command.UserId} not found.");
+
+        user.Activate();
+        userRepository.Update(user);
+        await unitOfWork.CompleteAsync();
+
+        foreach (var domainEvent in user.DomainEvents)
+            await mediator.Publish(domainEvent);
+        user.ClearDomainEvents();
+
+        logger.LogInformation("[IAM] User {UserId} activated", command.UserId);
     }
 }

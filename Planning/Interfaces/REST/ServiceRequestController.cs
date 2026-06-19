@@ -23,9 +23,9 @@ public class ServiceRequestController(
     [ProducesResponseType(typeof(RequestEligibilityResource), StatusCodes.Status200OK)]
     public async Task<ActionResult<RequestEligibilityResource>> GetEligibility()
     {
-        var homeownerId = User.GetHomeOwnerId();
+        var client = User.GetClientIdentity();
         var (canCreate, planType, remaining, canPriority, reason) =
-            await queryService.Handle(new GetRequestEligibilityQuery(HomeownerId.From(homeownerId)));
+            await queryService.Handle(new GetRequestEligibilityQuery(client));
 
         return Ok(new RequestEligibilityResource(canCreate, planType, remaining, canPriority, reason));
     }
@@ -38,7 +38,7 @@ public class ServiceRequestController(
         try
         {
             var requestId = await commandService.Handle(
-                new InitiateServiceRequestCommand(HomeownerId.From(User.GetHomeOwnerId()))) ?? throw new Exception("Failed to create service request");
+                new InitiateServiceRequestCommand(User.GetClientIdentity())) ?? throw new Exception("Failed to create service request");
             return StatusCode(StatusCodes.Status201Created, new { requestId = requestId.Value });
         }
         catch (RequestLimitReachedException ex)
@@ -57,7 +57,7 @@ public class ServiceRequestController(
         try
         {
             await commandService.Handle(new SelectPropertyForRequestCommand(
-                RequestId.From(requestId), HomeownerId.From(User.GetHomeOwnerId()), PropertyId.From(resource.PropertyId)));
+                RequestId.From(requestId), User.GetClientIdentity(), PropertyId.From(resource.PropertyId)));
             return NoContent();
         }
         catch (InvalidRequestStatusException ex) { return BadRequest(new { message = ex.Message }); }
@@ -90,7 +90,7 @@ public class ServiceRequestController(
         {
             await commandService.Handle(new SelectServiceRecipeCommand(
                 RequestId.From(requestId),
-                HomeownerId.From(User.GetHomeOwnerId()),
+                User.GetClientIdentity(),
                 Enum.Parse<EServiceCategory>(recipeId.ServiceCategory, ignoreCase: true)));
             
             return NoContent();
@@ -108,7 +108,7 @@ public class ServiceRequestController(
         try
         {
             await commandService.Handle(new AddServiceDetailsCommand(
-                RequestId.From(requestId), HomeownerId.From(User.GetHomeOwnerId()),
+                RequestId.From(requestId), User.GetClientIdentity(),
                 resource.ProblemDescription, resource.ConsumptionKwh,
                 resource.AmountPaid, resource.AmountCurrency,
                 resource.BillingPeriod, resource.ReceiptNumber,
@@ -125,11 +125,11 @@ public class ServiceRequestController(
     {
         try
         {
-            var homeownerId = User.GetHomeOwnerId();
-            await commandService.Handle(new ConfirmServiceRequestCommand(RequestId.From(requestId), HomeownerId.From(homeownerId)));
+            var client = User.GetClientIdentity();
+            await commandService.Handle(new ConfirmServiceRequestCommand(RequestId.From(requestId), client));
 
             var request = await queryService.Handle(
-                new GetServiceRequestSummaryQuery(RequestId.From(requestId), HomeownerId.From(homeownerId)));
+                new GetServiceRequestSummaryQuery(RequestId.From(requestId), client));
 
             if (request is null) return NotFound(new { message = "Request not found" });
             return AcceptedAtAction(nameof(GetSummary), new { requestId }, ServiceRequestSummaryResourceFromEntityAssembler.ToResource(request));
@@ -150,7 +150,7 @@ public class ServiceRequestController(
         try
         {
             await commandService.Handle(new CancelServiceRequestCommand(
-                RequestId.From(requestId), HomeownerId.From(User.GetHomeOwnerId()), resource.Reason, resource.Notes));
+                RequestId.From(requestId), User.GetClientIdentity(), resource.Reason, resource.Notes));
             return NoContent();
         }
         catch (CannotCancelAssignedRequestException ex) { return Conflict(new { message = ex.Message }); }
@@ -163,7 +163,7 @@ public class ServiceRequestController(
         [FromRoute] string requestId)
     {
         var request = await queryService.Handle(
-            new GetServiceRequestSummaryQuery(RequestId.From(requestId), HomeownerId.From(User.GetHomeOwnerId())));
+            new GetServiceRequestSummaryQuery(RequestId.From(requestId), User.GetClientIdentity()));
 
         if (request is null) return NotFound(new { message = "Request not found" });
         return Ok(ServiceRequestSummaryResourceFromEntityAssembler.ToResource(request));

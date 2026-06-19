@@ -2,4 +2,4 @@
 
 namespace Hampcoders.Electrolink.API.Profiles.Domain.Model.Queries;
 
-public record GetPropertyByHomeownerIdAndIdQuery(PropertyId PropertyId, HomeownerId HomeownerId);
+public record GetPropertyByHomeownerIdAndIdQuery(PropertyId PropertyId, ClientIdentity Owner);

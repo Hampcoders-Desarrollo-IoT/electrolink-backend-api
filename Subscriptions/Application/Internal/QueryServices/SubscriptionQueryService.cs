@@ -9,11 +9,11 @@ public class SubscriptionQueryService(
     ISubscriptionRepository subscriptionRepository) : ISubscriptionQueryService
 {
     public async Task<Subscription> Handle(GetMySubscriptionQuery query)
-        => await subscriptionRepository.FindByUserIdOrFailAsync(query.UserId);
+        => await subscriptionRepository.FindByProfileIdOrFailAsync(query.ProfileId);
 
     public async Task<RequestEligibilityResult> Handle(GetRequestEligibilityQuery query)
     {
-        var subscription = await subscriptionRepository.FindByUserIdOrFailAsync(query.UserId);
+        var subscription = await subscriptionRepository.FindByProfileIdOrFailAsync(query.ProfileId);
 
         if (subscription.PlanType.IsPremium)
         {
@@ -36,14 +36,14 @@ public class SubscriptionQueryService(
 
     public async Task<IEnumerable<PaymentRecord>> Handle(GetPaymentHistoryQuery query)
     {
-        var subscription = await subscriptionRepository.FindByUserIdOrFailAsync(query.UserId);
+        var subscription = await subscriptionRepository.FindByProfileIdOrFailAsync(query.ProfileId);
         return await subscriptionRepository.FindPaymentHistoryAsync(
             subscription.SubscriptionId.Value, query.Page, query.PageSize);
     }
 
     public async Task<Subscription?> Handle(GetSubscriptionStatusAlertQuery query)
     {
-        var subscription = await subscriptionRepository.FindByUserIdOrFailAsync(query.UserId);
+        var subscription = await subscriptionRepository.FindByProfileIdOrFailAsync(query.ProfileId);
         return subscription.Status.IsInGracePeriod ? subscription : null;
     }
 

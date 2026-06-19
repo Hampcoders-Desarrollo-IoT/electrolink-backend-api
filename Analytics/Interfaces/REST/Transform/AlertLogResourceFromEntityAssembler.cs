@@ -9,7 +9,7 @@ public static class AlertLogResourceFromEntityAssembler
     {
         return new AlertLogResource(
             log.LogId.Value,
-            log.HomeownerId.Value,
+            log.Owner.ClientId,
             log.Entries.Select(e => new AlertEntryResource(
                 e.EntryId.Value,
                 e.SourceEventId.Value,

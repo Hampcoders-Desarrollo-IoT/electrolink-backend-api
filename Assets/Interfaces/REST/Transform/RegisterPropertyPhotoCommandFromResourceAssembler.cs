@@ -12,7 +12,7 @@ public static class RegisterPropertyPhotoCommandFromResourceAssembler
         RegisterPropertyPhotoResource resource)
     {
         return new RegisterPropertyPhotoCommand(
-            HomeownerId.From(homeownerId),
+            ClientIdentity.FromHomeowner(homeownerId),
             PropertyId.From(propertyId),
             resource.ProviderId,
             resource.PublicUrl);

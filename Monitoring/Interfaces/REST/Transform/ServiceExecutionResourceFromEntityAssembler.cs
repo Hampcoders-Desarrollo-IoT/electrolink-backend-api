@@ -10,7 +10,7 @@ public static class ServiceExecutionResourceFromEntityAssembler
             execution.Id.Value,
             execution.AssignmentId.Value,
             execution.TechnicianId.Value,
-            execution.HomeownerId.Value,
+            execution.Owner.ClientId,
             execution.PropertyId.Value,
             execution.Status.ToString(),
             execution.ScheduledDateTime,

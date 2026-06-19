@@ -10,7 +10,8 @@ public class AnomalyRecord : BaseAggregateRoot
     public AnomalyRecordId AnomalyId   { get; private set; }
     public DeviceId        DeviceId    { get; private set; }
     public PropertyId      PropertyId  { get; private set; }
-    public HomeownerId        HomeownerId    { get; private set; }
+    public ClientIdentity Owner    { get; private set; }
+    public HomeownerId HomeownerId => Owner.ToHomeownerId();
 
     public EAnomalyType     AnomalyType     { get; private set; }
     public EAnomalySeverity Severity        { get; private set; }
@@ -31,7 +32,7 @@ public class AnomalyRecord : BaseAggregateRoot
     public static AnomalyRecord Detect(
         DeviceId deviceId,
         PropertyId propertyId,
-        HomeownerId homeownerId,
+        ClientIdentity owner,
         EAnomalyType anomalyType,
         EAnomalySeverity severity,
         ReadingId triggerReadingId)
@@ -41,7 +42,7 @@ public class AnomalyRecord : BaseAggregateRoot
             AnomalyId      = AnomalyRecordId.NewId(),
             DeviceId       = deviceId,
             PropertyId     = propertyId,
-            HomeownerId       = homeownerId,
+            Owner       = owner,
             AnomalyType    = anomalyType,
             Severity       = severity,
             DetectionLayer = EDetectionLayer.Cloud,
@@ -51,7 +52,7 @@ public class AnomalyRecord : BaseAggregateRoot
         };
 
         record.RaiseDomainEvent(new AnomalyDetectedEvent(
-            record.AnomalyId.Value, deviceId.Value, propertyId.Value, homeownerId.Value,
+            record.AnomalyId.Value, deviceId.Value, propertyId.Value, owner.ClientId,
             anomalyType.ToString(), severity.ToString(),
             EDetectionLayer.Cloud.ToString(), false, record.DetectedAt));
 
@@ -61,7 +62,7 @@ public class AnomalyRecord : BaseAggregateRoot
     public static AnomalyRecord DetectFromEdge(
         DeviceId deviceId,
         PropertyId propertyId,
-        HomeownerId homeownerId,
+        ClientIdentity owner,
         EAnomalyType anomalyType,
         EAnomalySeverity severity,
         ReadingId triggerReadingId,
@@ -72,7 +73,7 @@ public class AnomalyRecord : BaseAggregateRoot
             AnomalyId            = AnomalyRecordId.NewId(),
             DeviceId             = deviceId,
             PropertyId           = propertyId,
-            HomeownerId             = homeownerId,
+            Owner             = owner,
             AnomalyType          = anomalyType,
             Severity             = severity,
             DetectionLayer       = EDetectionLayer.Edge,
@@ -83,7 +84,7 @@ public class AnomalyRecord : BaseAggregateRoot
         };
 
         record.RaiseDomainEvent(new AnomalyDetectedEvent(
-            record.AnomalyId.Value, deviceId.Value, propertyId.Value, homeownerId.Value,
+            record.AnomalyId.Value, deviceId.Value, propertyId.Value, owner.ClientId,
             anomalyType.ToString(), severity.ToString(),
             EDetectionLayer.Edge.ToString(), false, record.DetectedAt));
 
@@ -150,7 +151,7 @@ public class AnomalyRecord : BaseAggregateRoot
         RelatedServiceSuggestionId = serviceSuggestionId;
 
         RaiseDomainEvent(new AnomalyDetectedEvent(
-            AnomalyId.Value, DeviceId.Value, PropertyId.Value, HomeownerId.Value,
+            AnomalyId.Value, DeviceId.Value, PropertyId.Value, Owner.ClientId,
             AnomalyType.ToString(), Severity.ToString(),
             DetectionLayer.ToString(), true, DateTime.UtcNow));
     }

@@ -29,9 +29,12 @@ public class ServiceExecutionConfiguration : IEntityTypeConfiguration<ServiceExe
             .HasConversion(id => id.Value, value => TechnicianId.From(value))
             .IsRequired();
 
-        builder.Property(x => x.HomeownerId)
-            .HasConversion(id => id.Value, value => HomeownerId.From(value))
-            .IsRequired();
+        builder.OwnsOne(x => x.Owner, o =>
+        {
+            o.WithOwner().HasForeignKey("Id");
+            o.Property(c => c.ClientType).HasConversion<string>().HasColumnName("owner_type").HasMaxLength(20).IsRequired();
+            o.Property(c => c.ClientId).HasColumnName("owner_id").HasMaxLength(100).IsRequired();
+        });
 
         builder.Property(x => x.PropertyId)
             .HasConversion(id => id.Value, value => PropertyId.From(value))

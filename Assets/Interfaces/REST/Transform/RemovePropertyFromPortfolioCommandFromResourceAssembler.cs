@@ -7,7 +7,7 @@ public static class RemovePropertyFromPortfolioCommandFromResourceAssembler
 {
     public static RemovePropertyFromPortfolioCommand ToCommandFromResource(string homeownerId, string propertyId, string reason)
         => new RemovePropertyFromPortfolioCommand(
-            HomeownerId.From(homeownerId),
+            ClientIdentity.FromHomeowner(homeownerId),
             PropertyId.From(propertyId),
             reason);
 }

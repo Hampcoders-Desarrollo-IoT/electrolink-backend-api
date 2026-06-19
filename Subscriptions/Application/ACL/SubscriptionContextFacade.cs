@@ -1,4 +1,5 @@
-﻿using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Commands;
+﻿using Hampcoders.Electrolink.API.Profiles.Interfaces.ACL;
+using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Commands;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Queries;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Services;
 using Hampcoders.Electrolink.API.Subscriptions.Interfaces.ACL;
@@ -7,7 +8,8 @@ namespace Hampcoders.Electrolink.API.Subscriptions.Application.ACL;
 
 public class SubscriptionContextFacade(
     ISubscriptionQueryService subscriptionQueryService,
-    ISubscriptionCommandService subscriptionCommandService)
+    ISubscriptionCommandService subscriptionCommandService,
+    IProfilesContextFacade profilesContextFacade)
     : ISubscriptionContextFacade
 {
     public async Task<bool> CanCreateRequestAsync(string homeownerId)
@@ -50,7 +52,11 @@ public class SubscriptionContextFacade(
 
         try
         {
-            await subscriptionCommandService.Handle(new IncrementMonthlyRequestCounterCommand(homeownerId));
+            var profileId = await profilesContextFacade.GetProfileIdByHomeownerIdAsync(homeownerId);
+            if (string.IsNullOrWhiteSpace(profileId))
+                return false;
+
+            await subscriptionCommandService.Handle(new IncrementMonthlyRequestCounterCommand(profileId));
             return true;
         }
         catch (ArgumentException)
@@ -65,6 +71,19 @@ public class SubscriptionContextFacade(
 
     public Task<bool> TechnicianHasPremiumSubscriptionAsync(string technicianId)
         => IsTechnicianPremiumAsync(technicianId);
+
+    public async Task RecordInstallationServiceRequestAsync(string subscriptionId, string serviceRequestId)
+    {
+        try
+        {
+            await subscriptionCommandService.Handle(
+                new RecordInstallationServiceRequestCommand(subscriptionId, serviceRequestId));
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
 
     public async Task<string?> GetTechnicianPlanTypeAsync(string technicianId)
     {

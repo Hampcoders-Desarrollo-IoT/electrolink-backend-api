@@ -2,6 +2,7 @@ using Hampcoders.Electrolink.API.Shared.Domain.Model.Aggregates;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Events;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.ValueObjects;
+using Hampcoders.Electrolink.API.Subscriptions.Domain.Services;
 
 namespace Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Aggregates;
 
@@ -18,6 +19,7 @@ public class Subscription : BaseAggregateRoot
 {
     public SubscriptionId SubscriptionId { get; private set; }
     public UserId UserId { get; private set; }
+    public ProfileId ProfileId { get; private set; }
 
     public BusinessRole BusinessRole { get; private set; }
     public PlanType PlanType { get; private set; }
@@ -34,6 +36,14 @@ public class Subscription : BaseAggregateRoot
     public DateTime? GracePeriodEndsAt { get; private set; }
 
     public UsageCounters? UsageCounters { get; private set; }
+
+    // ── Enterprise IoT (solo COMPANY) ─────────────────────
+    public string? InstallationServiceRequestId { get; private set; }
+    public DateTime? InstallationDeadlineAt { get; private set; }
+    public int? ActiveDeviceCount { get; private set; }
+    public int? PricePerDevice { get; private set; }
+
+    public DateTime? UpdatedAt { get; private set; }
 
     private readonly List<PaymentRecord> _paymentRecords = [];
     public IReadOnlyCollection<PaymentRecord> PaymentRecords => _paymentRecords.AsReadOnly();
@@ -63,13 +73,16 @@ public class Subscription : BaseAggregateRoot
     /// </summary>
     public static Subscription Initialize(
         UserId userId,
+        ProfileId profileId,
         BusinessRole businessRole,
-        StripeCustomerId stripeCustomerId)
+        StripeCustomerId stripeCustomerId,
+        IBillingPolicy billingPolicy)
     {
         var subscription = new Subscription
         {
             SubscriptionId = SubscriptionId.NewSubscriptionId(),
             UserId = userId,
+            ProfileId = profileId,
             BusinessRole = businessRole,
             PlanType = PlanType.Basic,
             BillingCycle = null,
@@ -79,14 +92,14 @@ public class Subscription : BaseAggregateRoot
             StripeSubscriptionId = null,
             BillingPeriod = null,
             GracePeriodEndsAt = null,
-            UsageCounters = businessRole.Value == EBusinessRole.Homeowner
-                ? Hampcoders.Electrolink.API.Subscriptions.Domain.Model.ValueObjects.UsageCounters.Initial()
-                : null
+            UsageCounters = billingPolicy.InitializeCounters(),
+            ActiveDeviceCount = billingPolicy.InitializeActiveDeviceCount(),
         };
 
         subscription.RaiseDomainEvent(new SubscriptionInitializedEvent(
             subscription.SubscriptionId.Value,
             subscription.UserId.Value,
+            subscription.ProfileId.Value,
             subscription.BusinessRole.ToString(),
             subscription.PlanType.ToString(),
             subscription.StripeCustomerId.Value,
@@ -208,6 +221,13 @@ public class Subscription : BaseAggregateRoot
             invoiceId.Value,
             gracePeriodEndsAt,
             failedAt));
+
+        RaiseDomainEvent(new PaymentFailedEvent(
+            SubscriptionId.Value,
+            UserId.Value,
+            ProfileId.Value,
+            invoiceId.Value,
+            failedAt));
     }
 
     // ── Method: Degrade ──────────────────────────────────
@@ -233,6 +253,8 @@ public class Subscription : BaseAggregateRoot
         // Restore usage counters for HOMEOWNER
         if (BusinessRole.Value == EBusinessRole.Homeowner)
             UsageCounters = Hampcoders.Electrolink.API.Subscriptions.Domain.Model.ValueObjects.UsageCounters.Initial();
+
+        UpdatedAt = DateTime.UtcNow;
 
         RaiseDomainEvent(new SubscriptionDegradedEvent(
             SubscriptionId.Value,
@@ -338,20 +360,36 @@ public class Subscription : BaseAggregateRoot
     /// </summary>
     public void ActivateEnterprisePendingInstallation(
         StripeSubscriptionId stripeSubscriptionId,
-        BillingPeriod billingPeriod)
+        BillingPeriod billingPeriod,
+        int initialDeviceCount,
+        int pricePerDevice,
+        PlanType planType)
     {
         if (!PlanType.IsBasic)
             throw new InvalidOperationException("Enterprise subscription can only be activated from BASIC plan.");
 
-        PlanType = PlanType.Enterprise;
+        PlanType = planType;
         StripeSubscriptionId = stripeSubscriptionId;
         BillingPeriod = billingPeriod;
         Status = SubscriptionStatus.PendingInstallation;
+        ActiveDeviceCount = initialDeviceCount;
+        PricePerDevice = pricePerDevice;
+        InstallationDeadlineAt = billingPeriod.PeriodStart.AddDays(30);
 
         RaiseDomainEvent(new EnterpriseSubscriptionPendingInstallationEvent(
             SubscriptionId.Value,
             UserId.Value,
             stripeSubscriptionId.Value,
+            initialDeviceCount,
+            pricePerDevice,
+            InstallationDeadlineAt.Value,
+            DateTime.UtcNow));
+
+        RaiseDomainEvent(new IoTInstallationRequiredEvent(
+            SubscriptionId.Value,
+            UserId.Value,
+            initialDeviceCount,
+            InstallationDeadlineAt.Value,
             DateTime.UtcNow));
     }
 
@@ -362,17 +400,67 @@ public class Subscription : BaseAggregateRoot
     /// </summary>
     public void CancelWithRefund(string refundId, string reason)
     {
-        if (PlanType != PlanType.Enterprise)
+        if (!PlanType.IsAnyEnterprise)
             throw new InvalidOperationException("Only Enterprise subscriptions can be cancelled with refund.");
 
         Status = SubscriptionStatus.CancelledRefunded;
         StripeSubscriptionId = null;
+        ActiveDeviceCount = null;
+        PricePerDevice = null;
+        InstallationDeadlineAt = null;
 
         RaiseDomainEvent(new EnterpriseSubscriptionCancelledRefundedEvent(
             SubscriptionId.Value,
             UserId.Value,
             refundId,
             reason,
+            DateTime.UtcNow));
+    }
+
+    // ── Method: UpdateActiveDeviceCount ──────────────────
+    public void UpdateActiveDeviceCount(int newCount, string source)
+    {
+        if (BusinessRole.Value != EBusinessRole.Company)
+            throw new InvalidOperationException("Device count is only applicable to COMPANY subscriptions.");
+
+        var previous = ActiveDeviceCount ?? 0;
+        ActiveDeviceCount = newCount;
+        UpdatedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(new ActiveDeviceCountUpdatedEvent(
+            SubscriptionId.Value,
+            UserId.Value,
+            previous,
+            newCount,
+            PricePerDevice ?? 0,
+            (newCount * (PricePerDevice ?? 0)),
+            DateTime.UtcNow));
+    }
+
+    // ── Method: SetInstallationServiceRequestId ──────────
+    public void SetInstallationServiceRequestId(string serviceRequestId)
+    {
+        InstallationServiceRequestId = serviceRequestId;
+    }
+
+    // ── Method: ActivateEnterpriseFullyActive ────────────
+    public void ActivateEnterpriseFullyActive(int confirmedDeviceCount, string installationServiceRequestId)
+    {
+        if (Status != SubscriptionStatus.PendingInstallation)
+            throw new InvalidOperationException("Enterprise subscription must be in PENDING_INSTALLATION to activate.");
+
+        Status = SubscriptionStatus.Active;
+        ActiveDeviceCount = confirmedDeviceCount;
+        InstallationServiceRequestId = installationServiceRequestId;
+        InstallationDeadlineAt = null;
+        UpdatedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(new EnterpriseSubscriptionFullyActiveEvent(
+            SubscriptionId.Value,
+            UserId.Value,
+            PlanType.ToString(),
+            confirmedDeviceCount,
+            PricePerDevice ?? 0,
             DateTime.UtcNow));
     }
 }

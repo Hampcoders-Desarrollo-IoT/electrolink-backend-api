@@ -11,10 +11,10 @@ public class DeviceDisconnectedEventHandler(
     public async Task Handle(DeviceDisconnectedIntegrationEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("[Analytics BC] DeviceDisconnected: homeowner={HomeownerId}, device={DeviceId}",
-            notification.HomeownerId, notification.DeviceId);
+            notification.OwnerId, notification.DeviceId);
 
         await alertLogCommandService.RecordDeviceDisconnectionAlertAsync(
-            notification.HomeownerId,
+            notification.OwnerId,
             notification.DeviceId,
             circuitId: null);
     }

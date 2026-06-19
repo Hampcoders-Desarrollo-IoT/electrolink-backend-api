@@ -1,5 +1,4 @@
 
-using Hampcoders.Electrolink.API.Profiles.Domain.Model.Commands;
 using Hampcoders.Electrolink.API.Profiles.Domain.Model.Entities;
 using Hampcoders.Electrolink.API.Profiles.Domain.Model.Events;
 using Hampcoders.Electrolink.API.Profiles.Domain.Model.Exceptions;
@@ -7,11 +6,10 @@ using Hampcoders.Electrolink.API.Profiles.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Profiles.Domain.Services;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.Aggregates;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
-using InvalidOperationException = System.InvalidOperationException;
 
 namespace Hampcoders.Electrolink.API.Profiles.Domain.Model.Aggregates;
 
-public partial class Profile : BaseAggregateRoot
+public partial class Profile : BaseAggregateRoot, ICompletable
 {
     // ── Identity ──────────────────────────────────────────
     public ProfileId ProfileId { get; protected set; }
@@ -20,6 +18,7 @@ public partial class Profile : BaseAggregateRoot
     // ── States ────────────────────────────────────────────
     public EProfileStatus Status { get; private set; }
     public EBusinessRole? BusinessRole { get; private set; }
+    public string? SubscriptionTier { get; private set; }
 
     // ── Personal Data ─────
     public PersonalData? PersonalData { get; private set; }
@@ -30,11 +29,13 @@ public partial class Profile : BaseAggregateRoot
     // ── Sub-entities according to role ──
     public Technician? Technician { get; private set; }
     public HomeOwner? Homeowner { get; private set; }
+    public Company? Company { get; private set; }
 
     private Profile()
     {
     }
 
+    // ── Factory Method ────────────────────────────────────
     public static Profile Create(UserId userId)
     {
         var profile = new Profile
@@ -46,6 +47,7 @@ public partial class Profile : BaseAggregateRoot
             PersonalData = null,
             Technician = null,
             Homeowner = null,
+            Company = null,
         };
 
         profile.RaiseDomainEvent(new ProfileCreatedAsIncompleteEvent(
@@ -54,26 +56,53 @@ public partial class Profile : BaseAggregateRoot
         return profile;
     }
 
-    public async Task CompleteAsTechnician(
-        PersonalData personalData,
-        TechnicianData technicianData,
-        IProfileUniquenessChecker uniquenessChecker
-        )
+    // ── Template Method: CompleteProfileCore ──────────────
+    private async Task CompleteProfileCoreAsync(
+        EBusinessRole role,
+        PersonalData? personalData,
+        IProfileUniquenessChecker uniquenessChecker,
+        Func<Task> uniquenessValidation,
+        Action roleEntityFactory,
+        object subjectId)
     {
         EnsureStatus(EProfileStatus.Incomplete);
-        await uniquenessChecker.EnsureDniIsUniqueAsync(personalData.Dni, ProfileId);
-
+        await uniquenessValidation();
         PersonalData = personalData;
-        BusinessRole = EBusinessRole.Technician;
-        Technician = Technician.Create(TechnicianId.NewTechnicianId(), ProfileId, technicianData.Specialties, technicianData.ExperienceYears, technicianData.AboutMe, technicianData.ServiceArea);
+        BusinessRole = role;
+        roleEntityFactory();
         Status = EProfileStatus.Active;
 
         RaiseDomainEvent(new ProfileCompletedEvent(
             ProfileId.Value,
             UserId.Value,
-            Technician!.TechnicianId.Value,
-            EBusinessRole.Technician,
+            subjectId,
+            role,
             DateTime.UtcNow));
+    }
+
+    // ── Completion Methods ────────────────────────────────
+    public async Task CompleteAsTechnician(
+        PersonalData personalData,
+        TechnicianData technicianData,
+        IProfileUniquenessChecker uniquenessChecker)
+    {
+        var technicianId = TechnicianId.NewTechnicianId();
+
+        await CompleteProfileCoreAsync(
+            EBusinessRole.Technician,
+            personalData,
+            uniquenessChecker,
+            uniquenessValidation: () => uniquenessChecker.EnsureDniIsUniqueAsync(personalData.Dni, ProfileId),
+            roleEntityFactory: () =>
+            {
+                Technician = Technician.Create(
+                    technicianId, ProfileId,
+                    technicianData.Specialties,
+                    technicianData.ExperienceYears,
+                    technicianData.AboutMe,
+                    technicianData.ServiceArea);
+            },
+            subjectId: technicianId.Value);
     }
 
     public async Task CompleteAsHomeowner(
@@ -81,22 +110,44 @@ public partial class Profile : BaseAggregateRoot
         HomeownerData homeownerData,
         IProfileUniquenessChecker uniquenessChecker)
     {
-        EnsureStatus(EProfileStatus.Incomplete);
-        await uniquenessChecker.EnsureDniIsUniqueAsync(personalData.Dni, ProfileId);
+        var homeownerId = HomeownerId.NewHomeownerId();
 
-        PersonalData = personalData;
-        BusinessRole = EBusinessRole.HomeOwner;
-        Homeowner = HomeOwner.Create(HomeownerId.NewHomeownerId(), ProfileId, homeownerData.PreferredContactTime, homeownerData.CommunicationPreferences, homeownerData.EmergencyContact);
-        Status = EProfileStatus.Active;
-
-        RaiseDomainEvent(new ProfileCompletedEvent(
-            ProfileId.Value,
-            UserId.Value,
-            Homeowner!.HomeownerId.Value,
+        await CompleteProfileCoreAsync(
             EBusinessRole.HomeOwner,
-            DateTime.UtcNow));
+            personalData,
+            uniquenessChecker,
+            uniquenessValidation: () => uniquenessChecker.EnsureDniIsUniqueAsync(personalData.Dni, ProfileId),
+            roleEntityFactory: () =>
+            {
+                Homeowner = HomeOwner.Create(
+                    homeownerId, ProfileId,
+                    homeownerData.PreferredContactTime,
+                    homeownerData.CommunicationPreferences,
+                    homeownerData.EmergencyContact);
+            },
+            subjectId: homeownerId.Value);
+    }
+
+    public async Task CompleteAsCompany(
+        CompanyData companyData,
+        IProfileUniquenessChecker uniquenessChecker,
+        PersonalData? personalData = null)
+    {
+        var companyId = CompanyId.NewCompanyId();
+
+        await CompleteProfileCoreAsync(
+            EBusinessRole.Company,
+            personalData,
+            uniquenessChecker,
+            uniquenessValidation: () => uniquenessChecker.EnsureTaxIdIsUniqueAsync(companyData.TaxId, ProfileId),
+            roleEntityFactory: () =>
+            {
+                Company = Company.Create(companyId, ProfileId, companyData);
+            },
+            subjectId: companyId.Value);
     }
     
+    // ── Photo Management ──────────────────────────────────
     public void UpdateProfilePhoto(ProfilePhoto newPhoto)
     {
         if (newPhoto is null)
@@ -117,6 +168,15 @@ public partial class Profile : BaseAggregateRoot
         return oldProviderId;
     }
 
+    // ── Subscription Tier ─────────────────────────────────
+    public void UpdateSubscriptionTier(string tier)
+    {
+        SubscriptionTier = tier;
+        RaiseDomainEvent(new ProfileSubscriptionTierChangedEvent(
+            ProfileId, UserId, tier, DateTime.UtcNow));
+    }
+
+    // ── Personal Data Updates ─────────────────────────────
     public void UpdatePersonalData(string? firstName, string? lastName, PhoneNumber? phone, Address? address)
     {
         EnsureStatus(EProfileStatus.Active);
@@ -126,9 +186,28 @@ public partial class Profile : BaseAggregateRoot
             firstName,
             lastName,
             phone?.Value));
-
     }
 
+    // ── IoT Certification ─────────────────────────────────
+    public void GrantIoTCertification(CertificationData certification)
+    {
+        EnsureStatus(EProfileStatus.Active);
+        EnsureRole(EBusinessRole.Technician);
+        Technician!.GrantIoTCertification(certification);
+        RaiseDomainEvent(new IoTCertificationGrantedEvent(
+            ProfileId.Value, Technician.TechnicianId.Value, DateTime.UtcNow));
+    }
+
+    public void RevokeIoTCertification()
+    {
+        EnsureStatus(EProfileStatus.Active);
+        EnsureRole(EBusinessRole.Technician);
+        Technician!.RevokeIoTCertification();
+        RaiseDomainEvent(new IoTCertificationRevokedEvent(
+            ProfileId.Value, Technician.TechnicianId.Value, DateTime.UtcNow));
+    }
+
+    // ── Role-specific Data Updates ────────────────────────
     public void UpdateTechnicianData(IEnumerable<ESpecialty>? specialties, int? experienceYears, string? aboutMe)
     {
         EnsureStatus(EProfileStatus.Active);
@@ -158,7 +237,6 @@ public partial class Profile : BaseAggregateRoot
         EnsureStatus(EProfileStatus.Active);
         EnsureRole(EBusinessRole.HomeOwner);
 
-        // Solo aplicar cambios cuando se proporcionan (null => no cambiar)
         if (preferences != null)
             Homeowner!.UpdateCommunicationPreferences(preferences);
 
@@ -176,6 +254,21 @@ public partial class Profile : BaseAggregateRoot
             emergencyContact));
     }
 
+    public void UpdateCompanyData(CompanyData data)
+    {
+        EnsureStatus(EProfileStatus.Active);
+        EnsureRole(EBusinessRole.Company);
+
+        Company!.UpdateCompanyData(data);
+
+        RaiseDomainEvent(new CompanyDataUpdatedEvent(
+            ProfileId,
+            Company!.CompanyId,
+            data.CompanyName,
+            data.Industry));
+    }
+
+    // ── State Transitions (ICompletable) ──────────────────
     public void Deactivate()
     {
         EnsureStatus(EProfileStatus.Active);
@@ -191,8 +284,15 @@ public partial class Profile : BaseAggregateRoot
         RaiseDomainEvent(new ProfileReactivatedEvent(ProfileId, UserId, BusinessRole!.Value));
     }
     
+    public void Suspend()
+    {
+        EnsureStatus(EProfileStatus.Active);
+        
+        Status = EProfileStatus.Suspended;
+        RaiseDomainEvent(new ProfileSuspendedEvent(ProfileId, UserId, BusinessRole!.Value));
+    }
     
-    // ── Helper Methods for State Validation ────────────────────────────────
+    // ── Helper Methods for State Validation ────────────────
     private void EnsureStatus(EProfileStatus expected)
     {
         if (Status != expected)

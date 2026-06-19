@@ -21,7 +21,7 @@ public class CostProjectionSchedulerJob(
             .Where(d => d.PlanTier != Domain.Model.Enums.PlanTier.Free))
         {
             await _dashboardCommandService.GenerateCostProjectionAsync(
-                dashboard.HomeownerId.Value,
+                dashboard.Owner.ClientId,
                 electricityRate);
         }
     }

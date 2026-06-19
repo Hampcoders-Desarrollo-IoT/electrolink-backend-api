@@ -7,4 +7,7 @@ public record ActivateEnterpriseSubscriptionPendingInstallationCommand(
     int AmountPaid,
     string Currency,
     DateTime PeriodStart,
-    DateTime PeriodEnd);
+    DateTime PeriodEnd,
+    int InitialDeviceCount,
+    int PricePerDevice,
+    string PlanType);

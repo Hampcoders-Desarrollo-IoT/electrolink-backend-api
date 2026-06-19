@@ -9,7 +9,8 @@ namespace Hampcoders.Electrolink.API.Analytics.Domain.Model.Aggregates;
 public class ConsumptionReport : BaseAggregateRoot
 {
     public ConsumptionReportId ReportId { get; private set; }
-    public HomeownerId RequestedByHomeownerId { get; private set; }
+    public ClientIdentity RequestedBy { get; private set; }
+    public HomeownerId RequestedByHomeownerId => RequestedBy.ToHomeownerId();
     public PropertyId PropertyId { get; private set; }
     public DateTime PeriodStart { get; private set; }
     public DateTime PeriodEnd { get; private set; }
@@ -22,7 +23,7 @@ public class ConsumptionReport : BaseAggregateRoot
     private ConsumptionReport() { }
 
     public static ConsumptionReport Request(
-        HomeownerId homeownerId,
+        ClientIdentity requestedBy,
         PropertyId propertyId,
         DateTime periodStart,
         DateTime periodEnd,
@@ -34,7 +35,7 @@ public class ConsumptionReport : BaseAggregateRoot
         var report = new ConsumptionReport
         {
             ReportId = ConsumptionReportId.New(),
-            RequestedByHomeownerId = homeownerId ?? throw new ArgumentNullException(nameof(homeownerId)),
+            RequestedBy = requestedBy ?? throw new ArgumentNullException(nameof(requestedBy)),
             PropertyId = propertyId ?? throw new ArgumentNullException(nameof(propertyId)),
             PeriodStart = periodStart,
             PeriodEnd = periodEnd,
@@ -45,7 +46,7 @@ public class ConsumptionReport : BaseAggregateRoot
 
         report.RaiseDomainEvent(new ReportRequested(
             report.ReportId.Value,
-            homeownerId.Value,
+            report.RequestedBy.ClientId,
             propertyId.Value,
             DateTime.UtcNow));
 
@@ -65,7 +66,7 @@ public class ConsumptionReport : BaseAggregateRoot
 
         RaiseDomainEvent(new ReportGenerated(
             ReportId.Value,
-            RequestedByHomeownerId.Value,
+            RequestedBy.ClientId,
             downloadUrl,
             ExpiresAt.Value,
             DateTime.UtcNow));

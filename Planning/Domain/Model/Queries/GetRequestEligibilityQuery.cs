@@ -2,5 +2,5 @@
 
 namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Queries;
 
-public record GetRequestEligibilityQuery(HomeownerId HomeownerId);
+public record GetRequestEligibilityQuery(ClientIdentity Client);
 

@@ -19,7 +19,7 @@ public class ExternalAssetsService(AppDbContext context) : IAssetsContextFacade
             DeviceId: device.Id.Value,
             Status: device.Status.ToString(),
             PropertyId: device.AssignedPropertyId?.Value ?? string.Empty,
-            HomeownerId: string.Empty);
+            OwnerId: string.Empty);
     }
 
     public async Task<bool> ValidateApiKeyAsync(string deviceId, string apiKeyHash)

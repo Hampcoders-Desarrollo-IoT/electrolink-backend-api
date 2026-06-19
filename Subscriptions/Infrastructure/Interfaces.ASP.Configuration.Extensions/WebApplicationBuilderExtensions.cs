@@ -26,12 +26,16 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddScoped<ISubscriptionCommandService, SubscriptionCommandService>();
         builder.Services.AddScoped<ISubscriptionQueryService, SubscriptionQueryService>();
         builder.Services.AddScoped<ExternalIamService>();
-        builder.Services.AddScoped<ExternalProfileService>();
 
+        builder.Services.AddScoped<ISubscriptionProfileResolver, SubscriptionProfileResolver>();
         builder.Services.AddScoped<ISubscriptionContextFacade, SubscriptionContextFacade>();
 
         builder.Services.AddHostedService<GracePeriodExpirationJob>();
         builder.Services.AddHostedService<MonthlyCounterResetJob>();
+        builder.Services.AddHostedService<EnterpriseActivationPolicyJob>();
+
+        builder.Services.AddScoped<HomeownerBillingPolicy>();
+        builder.Services.AddScoped<EnterpriseBillingPolicy>();
 
         builder.Services.AddScoped<ISubscriptionTierQuery, SubscriptionTierQueryService>();
     }

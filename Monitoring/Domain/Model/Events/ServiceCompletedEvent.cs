@@ -12,7 +12,7 @@ public record ServiceCompletedEvent(
     AssignmentId AssignmentId,
     RequestId RequestId,
     TechnicianId TechnicianId,
-    HomeownerId HomeownerId,
+    ClientIdentity Owner,
     PropertyId PropertyId,
     string ServiceCategory,
     IReadOnlyList<ComponentUsage> ComponentsActuallyUsed,

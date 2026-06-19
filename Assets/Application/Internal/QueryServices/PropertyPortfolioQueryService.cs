@@ -10,5 +10,5 @@ namespace Hampcoders.Electrolink.API.Assets.Application.Internal.QueryServices;
 public class PropertyPortfolioQueryService(IPropertyPortfolioRepository propertyPortfolioRepository, IUnitOfWork unitOfWork, IMediator mediator) : IPropertyPortfolioQueryService
 {
     public async Task<PropertyPortfolio?> Handle(GetPortfolioByOwnerIdQuery query)
-        => await propertyPortfolioRepository.FindByOwnerIdWithEntriesAsync(query.HomeownerId);
+        => await propertyPortfolioRepository.FindByOwnerWithEntriesAsync(query.Owner);
 }

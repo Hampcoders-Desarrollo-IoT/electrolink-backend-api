@@ -34,6 +34,8 @@ public static class ModelBuilderExtensions
     
     public static void ApplyServiceDesignAndPlanningConfiguration(this ModelBuilder builder)
     {
+        ConfigureServiceSuggestion(builder);
+
         // ── ServiceCatalog ────────────────────────────────────────────────
         builder.Entity<ServiceCatalog>().HasKey(c => c.CatalogId);
 
@@ -177,11 +179,20 @@ public static class ModelBuilderExtensions
             .ValueGeneratedNever();
 
         builder.Entity<ServiceRequest>()
-            .Property(r => r.HomeownerId)
-            .HasConversion(HomeownerIdConverter)
-            .HasColumnName("homeowner_id")
-            .HasMaxLength(100)
-            .IsRequired();
+            .OwnsOne(r => r.Client, client =>
+            {
+                client.WithOwner().HasForeignKey("RequestId");
+                client.Property("RequestId").HasColumnName("id");
+                client.Property(c => c.ClientType)
+                    .HasConversion<string>()
+                    .HasColumnName("client_type")
+                    .HasMaxLength(20)
+                    .IsRequired();
+                client.Property(c => c.ClientId)
+                    .HasColumnName("client_id")
+                    .HasMaxLength(100)
+                    .IsRequired();
+            });
 
         builder.Entity<ServiceRequest>()
             .Property(r => r.Status)
@@ -263,6 +274,7 @@ public static class ModelBuilderExtensions
         builder.Entity<ServiceRequest>().Property(r => r.CreatedDate).HasColumnName("created_at").IsRequired();
         builder.Entity<ServiceRequest>().Property(r => r.UpdatedDate).HasColumnName("updated_at");
         builder.Entity<ServiceRequest>().Ignore(r => r.DomainEvents);
+        builder.Entity<ServiceRequest>().Ignore(r => r.IotContextSnapshot);
 
         // ── ServiceAssignment ─────────────────────────────────────────────
         builder.Entity<ServiceAssignment>().HasKey(a => a.AssignmentId);
@@ -328,5 +340,25 @@ public static class ModelBuilderExtensions
         builder.Entity<ServiceAssignment>().Property(a => a.RetryCount).HasColumnName("retry_count").HasDefaultValue(0).IsRequired();
         builder.Entity<ServiceAssignment>().Property(a => a.CreatedDate).HasColumnName("created_at").IsRequired();
         builder.Entity<ServiceAssignment>().Ignore(a => a.DomainEvents);
+    }
+
+    private static void ConfigureServiceSuggestion(ModelBuilder builder)
+    {
+        builder.Entity<ServiceSuggestion>().ToTable("service_suggestions");
+        builder.Entity<ServiceSuggestion>().HasKey(s => s.SuggestionId);
+        builder.Entity<ServiceSuggestion>().Property(s => s.SuggestionId).HasColumnName("suggestion_id").HasMaxLength(50).IsRequired();
+        builder.Entity<ServiceSuggestion>().Property(s => s.ClientId).HasColumnName("client_id").HasMaxLength(100).IsRequired();
+        builder.Entity<ServiceSuggestion>().Property(s => s.ProfileId).HasColumnName("profile_id").HasMaxLength(50);
+        builder.Entity<ServiceSuggestion>().Property(s => s.PropertyId).HasColumnName("property_id").HasMaxLength(50).IsRequired();
+        builder.Entity<ServiceSuggestion>().Property(s => s.AnomalyId).HasColumnName("anomaly_id").HasMaxLength(50).IsRequired();
+        builder.Entity<ServiceSuggestion>().Property(s => s.DeviceId).HasColumnName("device_id").HasMaxLength(60).IsRequired();
+        builder.Entity<ServiceSuggestion>().Property(s => s.AnomalyType).HasColumnName("anomaly_type").HasMaxLength(100).IsRequired();
+        builder.Entity<ServiceSuggestion>().Property(s => s.Severity).HasColumnName("severity").HasMaxLength(20).IsRequired();
+        builder.Entity<ServiceSuggestion>().Property(s => s.Status).HasConversion<string>().HasColumnName("status").HasMaxLength(30).IsRequired();
+        builder.Entity<ServiceSuggestion>().Property(s => s.ExpiresAt).HasColumnName("expires_at").IsRequired();
+        builder.Entity<ServiceSuggestion>().Property(s => s.ViewedAt).HasColumnName("viewed_at");
+        builder.Entity<ServiceSuggestion>().Property(s => s.ConvertedToRequestAt).HasColumnName("converted_to_request_at");
+        builder.Entity<ServiceSuggestion>().HasIndex(s => s.ClientId).HasDatabaseName("ix_suggestions_client_id");
+        builder.Entity<ServiceSuggestion>().HasIndex(s => new { s.Status, s.ExpiresAt }).HasDatabaseName("ix_suggestions_status_expires");
     }
 }

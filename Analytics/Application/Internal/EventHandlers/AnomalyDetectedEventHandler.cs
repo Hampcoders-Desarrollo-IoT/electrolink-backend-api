@@ -11,10 +11,10 @@ public class AnomalyDetectedEventHandler(
     public async Task Handle(AnomalyDetectedIntegrationEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("[Analytics BC] AnomalyDetected: homeowner={HomeownerId}, type={Type}",
-            notification.HomeownerId, notification.AnomalyType);
+            notification.OwnerId, notification.AnomalyType);
 
         await alertLogCommandService.RecordAnomalyAlertAsync(
-            notification.HomeownerId,
+            notification.OwnerId,
             notification.AlertId,
             notification.Severity,
             notification.DeviceId);

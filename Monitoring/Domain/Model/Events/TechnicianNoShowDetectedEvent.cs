@@ -12,7 +12,7 @@ public record TechnicianNoShowDetectedEvent(
     ServiceExecutionId ExecutionId,
     AssignmentId AssignmentId,
     TechnicianId TechnicianId,
-    HomeownerId HomeownerId,
+    ClientIdentity Owner,
     DateTime ScheduledAt,
     DateTime DetectedAt,
     int MinutesLate,

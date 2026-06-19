@@ -1,5 +1,6 @@
 ﻿using Hampcoders.Electrolink.API.Planning.Domain.Model.Exceptions;
 using Hampcoders.Electrolink.API.Profiles.Interfaces.ACL;
+using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 
 namespace Hampcoders.Electrolink.API.Planning.Application.Internal.OutboundServices;
 
@@ -25,11 +26,21 @@ public class ExternalProfilesService(IProfilesContextFacade profilesContextFacad
     public async Task<string?> GetTechnicianIdByUserIdAsync(string userId)
         => await profilesContextFacade.GetTechnicianIdByUserIdAsync(userId);
 
-    /// <summary>
-    /// Checks if a homeowner profile is active based on the provided homeowner ID.
-    /// </summary>
-    /// <param name="homeownerId"></param>
-    /// <returns>True or False depending on Homeowner's status</returns>
+    public async Task<bool> IsClientActiveAsync(ClientIdentity client)
+        => client.ClientType switch
+        {
+            EClientType.Homeowner => await profilesContextFacade.IsHomeownerActiveAsync(client.ToHomeownerId().Value),
+            EClientType.Company => await profilesContextFacade.IsCompanyActiveAsync(client.ToCompanyId().Value),
+            _ => throw new ArgumentOutOfRangeException(nameof(client.ClientType))
+        };
+
+    public async Task EnsureClientIsActiveAsync(ClientIdentity client)
+    {
+        var isActive = await IsClientActiveAsync(client);
+        if (!isActive)
+            throw new InactiveHomeownerException(client.ToString());
+    }
+
     public async Task<bool> IsHomeownerActiveAsync(string homeownerId)
         => await profilesContextFacade.IsHomeownerActiveAsync(homeownerId);
     

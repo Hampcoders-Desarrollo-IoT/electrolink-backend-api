@@ -10,7 +10,7 @@ namespace Hampcoders.Electrolink.API.Assets.Domain.Model.Aggregates;
 public class PropertyPortfolio : BaseAggregateRoot
 {
     public PropertyPortfolioId Id { get; private set; } = null!;
-    public HomeownerId HomeownerId { get; private set; } = null!;
+    public ClientIdentity Owner { get; private set; } = null!;
 
     // ── State ─────────────────────────────────────────────
     public EPortfolioStatus Status  { get; private set; }
@@ -19,17 +19,17 @@ public class PropertyPortfolio : BaseAggregateRoot
     private readonly List<PortfolioEntry> _entries = new();
     public IReadOnlyCollection<PortfolioEntry> Entries => _entries.AsReadOnly();
     
-    public static PropertyPortfolio Create(HomeownerId ownerId)
+    public static PropertyPortfolio Create(ClientIdentity owner)
     {
         var portfolio = new PropertyPortfolio
         {
             Id = PropertyPortfolioId.NewPropertyPortfolioId(),
-            HomeownerId = ownerId,
+            Owner = owner,
             Status  = EPortfolioStatus.Empty,
         };
 
         portfolio.RaiseDomainEvent(new PropertyPortfolioCreatedEvent(
-            portfolio.Id, portfolio.HomeownerId, DateTime.UtcNow));
+            portfolio.Id, portfolio.Owner, DateTime.UtcNow));
 
         return portfolio;
     }

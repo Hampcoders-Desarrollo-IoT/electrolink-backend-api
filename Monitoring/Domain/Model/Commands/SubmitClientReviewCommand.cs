@@ -5,7 +5,7 @@ namespace Hampcoders.Electrolink.API.Monitoring.Domain.Model.Commands;
 
 public record SubmitClientReviewCommand(
     ServiceExecutionId ExecutionId,
-    HomeownerId ReviewerId,
+    ClientIdentity ReviewerId,
     int Rating,
     string? Comment,
     Dictionary<EEvaluationCategory, int> Categories,

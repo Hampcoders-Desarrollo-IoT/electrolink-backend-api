@@ -11,16 +11,10 @@ public class ConsumptionThresholdsUpdatedEventHandler(
     public async Task Handle(ConsumptionThresholdsUpdatedIntegrationEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "[Analytics BC] ConsumptionThresholdsUpdated: homeowner={HomeownerId}, low={Low}, high={High}",
-            notification.HomeownerId, notification.LowThreshold, notification.HighThreshold);
-
-        var thresholds = new Dictionary<string, decimal>
-        {
-            { "Low", notification.LowThreshold },
-            { "High", notification.HighThreshold }
-        };
+            "[Analytics BC] ConsumptionThresholdsUpdated: homeowner={HomeownerId}, thresholds={Thresholds}",
+            notification.OwnerId, notification.Thresholds.Count);
 
         await dashboardCommandService.UpdateConsumptionThresholdsAsync(
-            notification.HomeownerId, thresholds);
+            notification.OwnerId, notification.Thresholds);
     }
 }

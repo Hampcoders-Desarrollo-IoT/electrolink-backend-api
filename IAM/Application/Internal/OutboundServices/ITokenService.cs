@@ -20,7 +20,7 @@ public interface ITokenService
      * <param name="profileClaims">The optional profile claims for the user</param>
      * <returns>The generated token</returns>
      */
-    string GenerateToken(User user,(string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId)? profileClaims = null);
+    string GenerateToken(User user,(string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId, string? SubscriptionTier)? profileClaims = null);
 
     /**
      * <summary>

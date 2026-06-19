@@ -11,12 +11,12 @@ namespace Hampcoders.Electrolink.API.Assets.Infrastructure.Persistence.EFC.Repos
 public class PropertyPortfolioRepository(AppDbContext context)
     : BaseRepository<PropertyPortfolio, PropertyPortfolioId>(context), IPropertyPortfolioRepository
 {
-    public async Task<PropertyPortfolio?> FindByOwnerIdAsync(HomeownerId homeownerId)
+    public async Task<PropertyPortfolio?> FindByOwnerAsync(ClientIdentity owner)
         => await Context.Set<PropertyPortfolio>()
-            .FirstOrDefaultAsync(pp => pp.HomeownerId == homeownerId);
+            .FirstOrDefaultAsync(pp => pp.Owner.ClientType == owner.ClientType && pp.Owner.ClientId == owner.ClientId);
 
-    public async Task<PropertyPortfolio?> FindByOwnerIdWithEntriesAsync(HomeownerId homeownerId)
+    public async Task<PropertyPortfolio?> FindByOwnerWithEntriesAsync(ClientIdentity owner)
         => await Context.Set<PropertyPortfolio>()
             .Include(pp => pp.Entries)
-            .FirstOrDefaultAsync(pp => pp.HomeownerId == homeownerId);
+            .FirstOrDefaultAsync(pp => pp.Owner.ClientType == owner.ClientType && pp.Owner.ClientId == owner.ClientId);
 }

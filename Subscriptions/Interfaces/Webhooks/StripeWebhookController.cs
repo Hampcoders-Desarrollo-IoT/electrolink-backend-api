@@ -111,6 +111,10 @@ public class StripeWebhookController(
             var amountTotal = dataObj.TryGetProperty("amount_total", out var amt) ? (int)(amt.GetInt64() / 100) : 0;
             var currency = dataObj.TryGetProperty("currency", out var cur) ? cur.GetString()! : "usd";
 
+            var enterprisePlan = "ENTERPRISE_BASIC";
+            if (metadata.ValueKind != System.Text.Json.JsonValueKind.Undefined && metadata.TryGetProperty("planType", out var pt))
+                enterprisePlan = pt.GetString() ?? "ENTERPRISE_BASIC";
+
             await commandService.Handle(new ActivateEnterpriseSubscriptionPendingInstallationCommand(
                 StripeCustomerId: customerId!,
                 StripeSubscriptionId: string.Empty,
@@ -118,7 +122,10 @@ public class StripeWebhookController(
                 AmountPaid: amountTotal,
                 Currency: currency,
                 PeriodStart: DateTime.UtcNow,
-                PeriodEnd: DateTime.UtcNow.AddYears(1)));
+                PeriodEnd: DateTime.UtcNow.AddYears(1),
+                InitialDeviceCount: 0,
+                PricePerDevice: 0,
+                PlanType: enterprisePlan));
         }
         else if (mode == "subscription")
         {

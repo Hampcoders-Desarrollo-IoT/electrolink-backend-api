@@ -5,7 +5,7 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Commands;
 
 public record AddServiceDetailsCommand(
     RequestId RequestId,
-    HomeownerId HomeownerId,
+    ClientIdentity Client,
     string ProblemDescription,
     decimal ConsumptionKwh,
     decimal AmountPaid,

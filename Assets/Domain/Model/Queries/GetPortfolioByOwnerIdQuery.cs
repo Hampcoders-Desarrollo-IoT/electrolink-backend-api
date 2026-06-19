@@ -2,4 +2,4 @@
 
 namespace Hampcoders.Electrolink.API.Assets.Domain.Model.Queries;
 
-public record GetPortfolioByOwnerIdQuery(HomeownerId HomeownerId);
+public record GetPortfolioByOwnerIdQuery(ClientIdentity Owner);

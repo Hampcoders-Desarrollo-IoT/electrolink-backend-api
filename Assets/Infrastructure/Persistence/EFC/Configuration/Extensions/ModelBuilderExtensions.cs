@@ -183,10 +183,19 @@ public static class ModelBuilderExtensions
             .ValueGeneratedNever();
 
         builder.Entity<PropertyPortfolio>()
-            .Property(pp => pp.HomeownerId)
-            .HasConversion(id => id.Value, value => HomeownerId.From(value))
-            .HasColumnName("HomeownerId")
-            .IsRequired();
+            .OwnsOne(pp => pp.Owner, owner =>
+            {
+                owner.WithOwner().HasForeignKey("Id");
+                owner.Property(o => o.ClientType)
+                    .HasConversion<string>()
+                    .HasColumnName("owner_type")
+                    .HasMaxLength(20)
+                    .IsRequired();
+                owner.Property(o => o.ClientId)
+                    .HasColumnName("owner_id")
+                    .HasMaxLength(100)
+                    .IsRequired();
+            });
 
         builder.Entity<PropertyPortfolio>()
             .Property(pp => pp.Status)
@@ -240,12 +249,20 @@ public static class ModelBuilderExtensions
             .ValueGeneratedNever();
 
         builder.Entity<Property>()
-            .Property(p => p.OwnerId)
-            .HasConversion(id => id.Value, value => HomeownerId.From(value))
-            .HasColumnName("OwnerId")
-            .IsRequired();
-
-        builder.Entity<Property>().HasIndex(p => p.OwnerId);
+            .OwnsOne(p => p.Owner, owner =>
+            {
+                owner.WithOwner().HasForeignKey("Id");
+                owner.Property(o => o.ClientType)
+                    .HasConversion<string>()
+                    .HasColumnName("owner_type")
+                    .HasMaxLength(20)
+                    .IsRequired();
+                owner.Property(o => o.ClientId)
+                    .HasColumnName("owner_id")
+                    .HasMaxLength(100)
+                    .IsRequired();
+                owner.HasIndex(o => o.ClientId).HasDatabaseName("ix_properties_owner_client_id");
+            });
 
         builder.Entity<Property>().OwnsOne(p => p.Address, addr =>
         {
@@ -276,6 +293,13 @@ public static class ModelBuilderExtensions
 
         builder.Entity<Property>()
             .Property(p => p.IsActive)
+            .IsRequired();
+
+        builder.Entity<Property>()
+            .Property(p => p.PropertyType)
+            .HasConversion<string>()
+            .HasColumnName("property_type")
+            .HasMaxLength(20)
             .IsRequired();
 
         builder.Entity<Property>()

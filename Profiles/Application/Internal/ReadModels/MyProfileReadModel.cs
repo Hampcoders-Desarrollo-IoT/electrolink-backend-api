@@ -7,5 +7,6 @@ public sealed record MyProfileReadModel(
     string Status,
     PersonalDataReadModel? PersonalData,
     TechnicianReadModel? Technician,
-    HomeownerReadModel? Homeowner
+    HomeownerReadModel? Homeowner,
+    CompanyReadModel? Company
 );

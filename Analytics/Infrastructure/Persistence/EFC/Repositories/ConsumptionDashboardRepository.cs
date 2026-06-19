@@ -11,14 +11,21 @@ namespace Hampcoders.Electrolink.API.Analytics.Infrastructure.Persistence.EFC.Re
 public class ConsumptionDashboardRepository(AppDbContext context)
     : BaseRepository<ConsumptionDashboard, ConsumptionDashboardId>(context), IConsumptionDashboardRepository
 {
-    public async Task<ConsumptionDashboard?> FindByHomeownerIdAsync(HomeownerId homeownerId)
+    public async Task<ConsumptionDashboard?> FindByOwnerAsync(ClientIdentity owner)
     {
         return await Context.Set<ConsumptionDashboard>()
-            .FirstOrDefaultAsync(d => d.HomeownerId.Value == homeownerId.Value);
+            .FirstOrDefaultAsync(d => d.Owner.ClientId == owner.ClientId && d.Owner.ClientType == owner.ClientType);
     }
 
     public async Task<List<ConsumptionDashboard>> FindAllActiveAsync()
     {
         return await Context.Set<ConsumptionDashboard>().ToListAsync();
+    }
+
+    public async Task<IEnumerable<ConsumptionDashboard>> FindByOwnerIdAsync(string ownerId)
+    {
+        return await Context.Set<ConsumptionDashboard>()
+            .Where(d => d.Owner.ClientId == ownerId)
+            .ToListAsync();
     }
 }

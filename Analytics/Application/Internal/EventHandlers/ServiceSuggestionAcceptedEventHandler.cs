@@ -12,10 +12,10 @@ public class ServiceSuggestionAcceptedEventHandler(
     {
         logger.LogInformation(
             "[Analytics BC] ServiceSuggestionAccepted: homeowner={HomeownerId}, suggestion={SuggestionId}",
-            notification.HomeownerId, notification.ServiceSuggestionId);
+            notification.OwnerId, notification.ServiceSuggestionId);
 
         await alertLogCommandService.LinkAlertToServiceRequestAsync(
-            notification.HomeownerId,
+            notification.OwnerId,
             notification.ServiceSuggestionId,
             notification.ServiceSuggestionId);
     }

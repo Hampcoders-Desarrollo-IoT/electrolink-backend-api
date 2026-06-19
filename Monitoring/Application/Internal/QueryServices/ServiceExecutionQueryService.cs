@@ -22,12 +22,12 @@ public class ServiceExecutionQueryService(
 
     public async Task<ServiceExecution?> Handle(GetActiveServiceByClientQuery query)
     {
-        return await executionRepository.FindActiveByHomeownerIdAsync(query.HomeownerId);
+        return await executionRepository.FindActiveByOwnerAsync(query.Owner);
     }
 
     public async Task<IEnumerable<ServiceExecution>> Handle(GetServiceHistoryByClientQuery query)
     {
-        return await executionRepository.FindByHomeownerIdAsync(query.HomeownerId);
+        return await executionRepository.FindByOwnerAsync(query.Owner);
     }
 
     public async Task<IEnumerable<ServiceExecution>> Handle(GetServiceHistoryByTechnicianQuery query)

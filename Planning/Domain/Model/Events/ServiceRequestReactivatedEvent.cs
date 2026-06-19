@@ -6,7 +6,7 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Events;
 
 public record ServiceRequestReactivatedEvent(
     RequestId RequestId,
-    HomeownerId HomeownerId,
+    ClientIdentity Client,
     bool IsPriority,
     DateTime OccurredOn) : IEvent
 {

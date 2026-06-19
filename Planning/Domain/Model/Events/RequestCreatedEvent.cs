@@ -7,7 +7,7 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Events;
 
 public record RequestCreatedEvent(
     RequestId RequestId,
-    HomeownerId HomeownerId,
+    ClientIdentity Client,
     PropertyId PropertyId,
     RecipeId SelectedRecipeId,
     TechnicianId SelectedTechnicianId,

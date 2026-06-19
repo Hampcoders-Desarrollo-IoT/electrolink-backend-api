@@ -7,5 +7,5 @@ namespace Hampcoders.Electrolink.API.Analytics.Domain.Repositories;
 
 public interface IAlertLogRepository : IBaseRepository<AlertLog, AlertLogId>
 {
-    Task<AlertLog?> FindByHomeownerIdAsync(HomeownerId homeownerId);
+    Task<AlertLog?> FindByOwnerAsync(ClientIdentity owner);
 }

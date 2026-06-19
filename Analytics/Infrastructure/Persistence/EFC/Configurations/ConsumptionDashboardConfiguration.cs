@@ -22,9 +22,12 @@ public class ConsumptionDashboardConfiguration : IEntityTypeConfiguration<Consum
             .HasConversion(id => id.Value, v => ConsumptionDashboardId.From(v))
             .HasColumnName("dashboard_id");
 
-        builder.Property(d => d.HomeownerId)
-            .HasConversion(id => id.Value, v => HomeownerId.From(v))
-            .HasColumnName("homeowner_id");
+        builder.OwnsOne(d => d.Owner, o =>
+        {
+            o.WithOwner().HasForeignKey("DashboardId");
+            o.Property(c => c.ClientType).HasConversion<string>().HasColumnName("owner_type").HasMaxLength(20).IsRequired();
+            o.Property(c => c.ClientId).HasColumnName("owner_id").HasMaxLength(100).IsRequired();
+        });
 
         builder.Property(d => d.PropertyId)
             .HasConversion(id => id.Value, v => PropertyId.From(v))

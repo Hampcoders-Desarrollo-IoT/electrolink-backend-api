@@ -6,7 +6,7 @@ public record AnomalyDetectedEvent(
     string   AnomalyId,
     string   DeviceId,
     string   PropertyId,
-    string   HomeownerId,
+    string   OwnerId,
     string   AnomalyType,
     string   Severity,
     string   DetectionLayer,

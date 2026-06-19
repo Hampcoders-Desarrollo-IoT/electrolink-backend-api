@@ -11,10 +11,10 @@ public class ReadingIngestedEventHandler(
     public async Task Handle(ReadingIngestedIntegrationEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("[Analytics BC] ReadingIngested: homeowner={HomeownerId}, device={DeviceId}, circuit={CircuitId}",
-            notification.HomeownerId, notification.DeviceId, notification.CircuitId);
+            notification.OwnerId, notification.DeviceId, notification.CircuitId);
 
         await dashboardCommandService.UpdateConsumptionDashboardAsync(
-            notification.HomeownerId,
+            notification.OwnerId,
             notification.DeviceId,
             notification.CircuitId,
             notification.KilowattHours,

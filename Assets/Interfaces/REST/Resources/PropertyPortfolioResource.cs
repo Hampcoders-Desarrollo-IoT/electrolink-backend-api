@@ -5,7 +5,7 @@
 /// </summary>
 public record PropertyPortfolioResource(
     string Id,
-    string HomeownerId,
+    string OwnerId,
     string Status,
     List<PortfolioEntryResource> Entries);
 

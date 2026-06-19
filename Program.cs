@@ -15,6 +15,7 @@ using MediatR;
 using Hampcoders.Electrolink.API.IAM.Infrastructure.Pipeline.Middleware.Extensions;
 using Hampcoders.Electrolink.API.Monitoring.Infrastructure.Interfaces.ASP.Configuration.Extensions;
 using Hampcoders.Electrolink.API.Planning.Infrastructure.Interfaces.ASP.Configuration.Extensions;
+using Hampcoders.Electrolink.API.Profiles.Application.Internal.CommandServices;
 using Hampcoders.Electrolink.API.Profiles.Infrastructure.Interfaces.ASP.Configuration.Extensions;
 using Hampcoders.Electrolink.API.Profiles.Infrastructure.Persistence.JSON;
 using Hampcoders.Electrolink.API.Analytics.Application.Internal.CommandServices;
@@ -181,7 +182,8 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddMediatR(
     typeof(SubscriptionCommandService).Assembly,
     typeof(ConsumptionDashboardCommandService).Assembly,
-    typeof(DeviceReadingStreamCommandService).Assembly);
+    typeof(DeviceReadingStreamCommandService).Assembly,
+    typeof(Hampcoders.Electrolink.API.Profiles.Application.Internal.CommandServices.ProfileCommandService).Assembly);
 
 builder.Services.AddScoped<IAuthorizationHandler, SubscriptionTierHandler>();
 

@@ -2,4 +2,4 @@
 
 namespace Hampcoders.Electrolink.API.Assets.Domain.Model.Commands;
 
-public record CreatePropertyPortfolioCommand(HomeownerId HomeownerId);
+public record CreatePropertyPortfolioCommand(ClientIdentity Owner);

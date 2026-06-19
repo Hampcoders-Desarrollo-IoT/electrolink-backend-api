@@ -5,5 +5,5 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Commands;
 
 public record SelectPropertyForRequestCommand(
     RequestId RequestId,
-    HomeownerId HomeownerId,
+    ClientIdentity Client,
     PropertyId PropertyId);

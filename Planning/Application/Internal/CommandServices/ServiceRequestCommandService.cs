@@ -20,21 +20,22 @@ public class ServiceRequestCommandService(
     ISubscriptionContextFacade subscriptionFacade,
     ExternalProfilesService externalProfilesService,
     IAssetsContextFacade assetsFacade,
+    IContextSnapshotService contextSnapshotService,
     IUnitOfWork unitOfWork,
     ILogger<ServiceRequestCommandService> logger)
     : IServiceRequestCommandService
 {
     public async Task<RequestId?> Handle(InitiateServiceRequestCommand command)
     {
-        await externalProfilesService.EnsureHomeownerIsActiveAsync(command.HomeownerId.ToString());
+        await externalProfilesService.EnsureClientIsActiveAsync(command.Client);
 
-        var eligibility = await subscriptionFacade.GetRequestEligibilityAsync(command.HomeownerId.Value);
+        var eligibility = await subscriptionFacade.GetRequestEligibilityAsync(command.Client.ToHomeownerId().Value);
 
         if (!eligibility.canCreate)
-            throw new RequestLimitReachedException(command.HomeownerId);
+            throw new RequestLimitReachedException(command.Client);
 
         var request = ServiceRequest.Initiate(
-            command.HomeownerId,
+            command.Client,
             eligibility.canMarkAsPriority,
             eligibility.remainingRequests);
 
@@ -48,10 +49,10 @@ public class ServiceRequestCommandService(
     {
         var request = await requestRepository.FindByIdAsync(command.RequestId) ?? throw new InvalidOperationException($"ServiceRequest with ID {command.RequestId} not found.");
 
-        EnsureOwnership(request.HomeownerId, command.HomeownerId);
+        EnsureOwnership(request.Client, command.Client);
 
         var geolocation = await assetsFacade.GetPropertyGeolocationAsync(
-            command.PropertyId.Value, command.HomeownerId.Value) ;
+            command.PropertyId.Value, command.Client.ToHomeownerId().Value) ;
 
         if (geolocation is null)
             throw new InvalidOperationException("Property geolocation data unavailable.");
@@ -93,7 +94,7 @@ public class ServiceRequestCommandService(
         var request = await requestRepository.FindByIdAsync(command.RequestId)
                       ?? throw new InvalidOperationException($"ServiceRequest {command.RequestId} not found.");
 
-        EnsureOwnership(request.HomeownerId, command.HomeownerId);
+        EnsureOwnership(request.Client, command.Client);
 
         request.SelectCategory(command.ServiceCategory);
 
@@ -127,9 +128,9 @@ public class ServiceRequestCommandService(
             return;
         }
 
-        if (request.HomeownerId != command.HomeownerId)
+        if (request.Client != command.Client)
         {
-            logger.LogWarning("Homeowner mismatch for {RequestId}", command.RequestId);
+            logger.LogWarning("Client mismatch for {RequestId}", command.RequestId);
             return;
         }
 
@@ -149,7 +150,7 @@ public class ServiceRequestCommandService(
     {
         var request = await requestRepository.FindByIdAsync(command.RequestId) ?? throw new InvalidOperationException($"ServiceRequest with ID {command.RequestId} not found.");
 
-        EnsureOwnership(request.HomeownerId, command.HomeownerId);
+        EnsureOwnership(request.Client, command.Client);
 
         var currency = Enum.Parse<ECurrency>(command.AmountCurrency, ignoreCase: true);
         var dates = command.PreferredDates
@@ -175,13 +176,20 @@ public class ServiceRequestCommandService(
     {
         var request = await requestRepository.FindByIdAsync(command.RequestId) ?? throw new InvalidOperationException($"ServiceRequest with ID {command.RequestId} not found.");
 
-        EnsureOwnership(request.HomeownerId, command.HomeownerId);
+        EnsureOwnership(request.Client, command.Client);
 
-        var eligibility = await subscriptionFacade.GetRequestEligibilityAsync(command.HomeownerId.Value);
+        var eligibility = await subscriptionFacade.GetRequestEligibilityAsync(command.Client.ToHomeownerId().Value);
         if (!eligibility.canCreate)
-            throw new RequestLimitReachedException(command.HomeownerId);
+            throw new RequestLimitReachedException(command.Client);
 
         request.Confirm();
+
+        if (request.PropertyId is not null)
+        {
+            var snapshot = await contextSnapshotService.CaptureAsync(request.PropertyId.Value);
+            if (snapshot is not null)
+                request.SetIotContextSnapshot(snapshot);
+        }
 
         requestRepository.Update(request);
         await unitOfWork.CompleteAsync();
@@ -194,7 +202,7 @@ public class ServiceRequestCommandService(
     {
         var request = await requestRepository.FindByIdAsync(command.RequestId) ?? throw new InvalidOperationException($"ServiceRequest with ID {command.RequestId} not found.");
 
-        EnsureOwnership(request.HomeownerId, command.HomeownerId);
+        EnsureOwnership(request.Client, command.Client);
 
         request.Cancel(CancellationReason.From(command.Reason), command.Notes);
 
@@ -204,7 +212,7 @@ public class ServiceRequestCommandService(
         return true;
     }
 
-    private static void EnsureOwnership(HomeownerId actual, HomeownerId expected)
+    private static void EnsureOwnership(ClientIdentity actual, ClientIdentity expected)
     {
         if (actual != expected)
             throw new UnauthorizedRequestAccessException();

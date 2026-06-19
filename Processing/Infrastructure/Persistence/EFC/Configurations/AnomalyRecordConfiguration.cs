@@ -28,10 +28,11 @@ public class AnomalyRecordConfiguration : IEntityTypeConfiguration<AnomalyRecord
             .HasConversion(id => id.Value, v => PropertyId.From(v))
             .IsRequired();
 
-        builder.Property(a => a.HomeownerId)
-            .HasColumnName("homeowner_id").HasMaxLength(60)
-            .HasConversion(id => id.Value, v => HomeownerId.From(v))
-            .IsRequired();
+        builder.OwnsOne(x => x.Owner, o => {
+            o.WithOwner().HasForeignKey("AnomalyId");
+            o.Property(c => c.ClientType).HasConversion<string>().HasColumnName("owner_type").HasMaxLength(20).IsRequired();
+            o.Property(c => c.ClientId).HasColumnName("owner_id").HasMaxLength(100).IsRequired();
+        });
 
         builder.Property(a => a.AnomalyType)
             .HasColumnName("anomaly_type").HasMaxLength(40)

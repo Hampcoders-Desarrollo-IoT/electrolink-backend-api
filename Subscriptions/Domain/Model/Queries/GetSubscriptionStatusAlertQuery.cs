@@ -1,3 +1,3 @@
 namespace Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Queries;
 
-public record GetSubscriptionStatusAlertQuery(string UserId);
+public record GetSubscriptionStatusAlertQuery(string ProfileId);

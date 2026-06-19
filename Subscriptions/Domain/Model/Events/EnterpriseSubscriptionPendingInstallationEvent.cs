@@ -6,6 +6,9 @@ public sealed record EnterpriseSubscriptionPendingInstallationEvent(
     string SubscriptionId,
     string UserId,
     string StripeSubscriptionId,
+    int InitialDeviceCount,
+    int PricePerDevice,
+    DateTime InstallationDeadlineAt,
     DateTime OccurredAt) : IEvent
 {
     public Guid EventId { get; init; } = Guid.NewGuid();

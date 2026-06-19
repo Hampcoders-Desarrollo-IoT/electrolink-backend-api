@@ -1,7 +1,7 @@
 namespace Hampcoders.Electrolink.API.Analytics.Interfaces.REST.Resources;
 
 public record RequestConsumptionReportResource(
-    string HomeownerId,
+    string OwnerId,
     string PropertyId,
     DateTime PeriodStart,
     DateTime PeriodEnd,

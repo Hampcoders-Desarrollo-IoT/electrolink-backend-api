@@ -29,7 +29,7 @@ public class ProfileQueryService(IProfileRepository profileRepository) : IProfil
     public async Task<IEnumerable<(string technicianId, string profileId, string fullName)>> Handle(GetTechniciansInAreaQuery query)
         => await profileRepository.FindTechniciansInAreaAsync(query.Latitude, query.Longitude);
 
-    public Task<(string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId)?> Handle(GetProfileClaimsQuery query)
+    public Task<(string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId, string? SubscriptionTier)?> Handle(GetProfileClaimsQuery query)
     {
         return profileRepository.FindProfileClaimsByUserIdAsync(UserId.From(query.UserId));
     }
@@ -48,6 +48,9 @@ public class ProfileQueryService(IProfileRepository profileRepository) : IProfil
 
     public async Task<bool> Handle(IsHomeownerActiveQuery query) => 
         await profileRepository.IsHomeownerActiveAsync(query.HomeownerId);
+    
+    public async Task<bool> Handle(IsCompanyActiveQuery query) => 
+        await profileRepository.IsCompanyActiveAsync(query.CompanyId);
     
     private static int CalculateCompletion(Profile profile) =>
         profile.Status switch

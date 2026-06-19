@@ -9,5 +9,6 @@ public enum ERequestStatus
     Cancelled,
     CategorySelected,
     PropertySelected,
-    Expired
+    Expired,
+    PendingInstallation
 }

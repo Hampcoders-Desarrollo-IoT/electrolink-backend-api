@@ -84,9 +84,9 @@ public class ServiceDesignContextFacade(
         return detail?.ComponentRequirements ?? [];
     }
 
-    public async Task ReactivateServiceRequestAsync(string requestId, string homeownerId, string reason)
+    public async Task ReactivateServiceRequestAsync(string requestId, ClientIdentity client, string reason)
     {
-        await requestCommandService.Handle(new ReactivateServiceRequestCommand(RequestId.From(requestId), HomeownerId.From(homeownerId), reason));
+        await requestCommandService.Handle(new ReactivateServiceRequestCommand(RequestId.From(requestId), client, reason));
     }
 
     public async Task<bool> ReactivateServiceRequestForReassignmentAsync(string requestId)

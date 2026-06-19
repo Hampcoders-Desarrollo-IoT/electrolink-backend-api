@@ -6,7 +6,7 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Events;
 
 public record ServiceRequestExpiredEvent(
     RequestId RequestId,
-    HomeownerId HomeownerId,
+    ClientIdentity Client,
     DateTime OccurredOn
 ) : IEvent {
 public Guid EventId { get; init; } = Guid.NewGuid();

@@ -3,6 +3,7 @@ using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Aggregates;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using ProfileId = Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects.ProfileId;
 
 namespace Hampcoders.Electrolink.API.Subscriptions.Infrastructure.Persistence.EFC.Configuration;
 
@@ -23,6 +24,12 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
         builder.Property(s => s.UserId)
             .HasColumnName("user_id")
             .HasConversion(id => id.Value, v => UserId.From(v))
+            .HasMaxLength(50)
+            .IsRequired();
+
+        builder.Property(s => s.ProfileId)
+            .HasColumnName("profile_id")
+            .HasConversion(id => id.Value, v => ProfileId.From(v))
             .HasMaxLength(50)
             .IsRequired();
 
@@ -94,9 +101,32 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
                 .HasDefaultValue(2);
         });
 
+        builder.Property(s => s.InstallationServiceRequestId)
+            .HasColumnName("installation_service_request_id")
+            .HasMaxLength(100);
+
+        builder.Property(s => s.InstallationDeadlineAt)
+            .HasColumnName("installation_deadline_at");
+
+        builder.Property(s => s.ActiveDeviceCount)
+            .HasColumnName("active_device_count");
+
+        builder.Property(s => s.PricePerDevice)
+            .HasColumnName("price_per_device");
+
+        builder.Property(s => s.UpdatedAt)
+            .HasColumnName("updated_at");
+
+        builder.Property("UpdatedDate")
+            .HasColumnName("updated_date");
+
         builder.HasIndex(s => s.UserId)
             .IsUnique()
             .HasDatabaseName("uix_sp_subscriptions_user");
+
+        builder.HasIndex(s => s.ProfileId)
+            .IsUnique()
+            .HasDatabaseName("uix_sp_subscriptions_profile");
 
         builder.HasIndex(s => s.StripeCustomerId)
             .HasDatabaseName("ix_sp_subscriptions_stripe_cust");

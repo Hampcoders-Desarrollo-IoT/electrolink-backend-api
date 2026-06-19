@@ -4,6 +4,7 @@ using Hampcoders.Electrolink.API.Assets.Domain.Services;
 using Hampcoders.Electrolink.API.Assets.Interfaces.REST.Resources;
 using Hampcoders.Electrolink.API.Assets.Interfaces.REST.Transform;
 using Hampcoders.Electrolink.API.Profiles.Domain.Model.Queries;
+using Hampcoders.Electrolink.API.Shared.Interfaces.REST;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -27,7 +28,7 @@ public class PropertiesController(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var results = await queryService.Handle(
-            new GetAllPropertiesByOwnerIdQuery(HomeownerId.From(homeownerId), city, street, page, pageSize));
+            new GetAllPropertiesByOwnerIdQuery(ClientIdentity.FromHomeowner(homeownerId), city, street, page, pageSize));
         return Ok(results.Select(PropertyResourceFromEntityAssembler.ToResourceFromEntity));
     }
 
@@ -58,7 +59,7 @@ public class PropertiesController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PropertyResource>> GetPropertyById([FromRoute] string homeownerId, string propertyId)
     {
-        var property = await queryService.Handle(new GetPropertyByIdQuery(PropertyId.From(propertyId), HomeownerId.From(homeownerId)));
+        var property = await queryService.Handle(new GetPropertyByIdQuery(PropertyId.From(propertyId), ClientIdentity.FromHomeowner(homeownerId)));
         if (property is null) return NotFound(new { message = $"Property {propertyId} not found." });
         return Ok(PropertyResourceFromEntityAssembler.ToResourceFromEntity(property));
     }

@@ -18,7 +18,7 @@ public class ExternalAnalyticsService(
         try
         {
             await mediator.Publish(new ServiceCompletedIntegrationEvent(
-                HomeownerId: string.Empty,
+                OwnerId: string.Empty,
                 ServiceId: executionId,
                 ServiceType: string.Empty,
                 CompletedAt: completedAt,

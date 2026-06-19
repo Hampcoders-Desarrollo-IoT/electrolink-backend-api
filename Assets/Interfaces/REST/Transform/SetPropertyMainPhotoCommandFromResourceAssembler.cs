@@ -12,7 +12,7 @@ public static class SetPropertyMainPhotoCommandFromResourceAssembler
         SetPropertyMainPhotoResource resource)
     {
         return new SetPropertyMainPhotoCommand(
-            HomeownerId.From(homeownerId),
+            ClientIdentity.FromHomeowner(homeownerId),
             PropertyId.From(propertyId),
             resource.ProviderId);
     }

@@ -2,7 +2,7 @@ namespace Hampcoders.Electrolink.API.Analytics.Interfaces.REST.Resources;
 
 public record ConsumptionDashboardResource(
     string DashboardId,
-    string HomeownerId,
+    string OwnerId,
     string PropertyId,
     List<string> DeviceIds,
     string PlanTier,

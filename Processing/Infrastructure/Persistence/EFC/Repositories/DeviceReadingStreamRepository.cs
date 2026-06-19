@@ -4,6 +4,7 @@ using Hampcoders.Electrolink.API.Processing.Domain.Repositories;
 using Hampcoders.Electrolink.API.Processing.Infrastructure.Persistence.EFC.Configurations;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Shared.Infrastructure.Persistence.EFC.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Hampcoders.Electrolink.API.Shared.Infrastructure.Persistence.EFC.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,10 +29,10 @@ public class DeviceReadingStreamRepository(AppDbContext context)
             .AsNoTracking()
             .ToListAsync();
 
-    public async Task<IEnumerable<DeviceReadingStream>> FindByHomeownerIdAsync(string homeownerId)
+    public async Task<IEnumerable<DeviceReadingStream>> FindByOwnerAsync(ClientIdentity owner)
         => await Context.Set<DeviceReadingStream>()
             .Include(s => s.Readings.OrderByDescending(r => r.Timestamp).Take(120))
-            .Where(s => s.HomeownerId == HomeownerId.From(homeownerId))
+            .Where(s => s.Owner == owner)
             .ToListAsync();
 
     public async Task<IEnumerable<DeviceReadingStream>> FindStreamsExceedingThresholdAsync(DateTime lastSeenBefore)

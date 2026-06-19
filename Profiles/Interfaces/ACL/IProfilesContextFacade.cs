@@ -52,6 +52,11 @@ public interface IProfilesContextFacade
     Task<bool> IsHomeownerActiveAsync(string homeownerId);
 
     /// <summary>
+    /// Checks if a company profile is active.
+    /// </summary>
+    Task<bool> IsCompanyActiveAsync(string companyId);
+
+    /// <summary>
     /// Gets all technicians whose service area contains the given coordinates.
     /// Returns a list of tuples with (technicianId, profileId, fullName, rating).
     /// Specialties are excluded to keep primitives — query separately if needed.
@@ -71,7 +76,17 @@ public interface IProfilesContextFacade
     /// <summary>
     /// Gets profile claims (full name, role, and profile ID) by user ID.
     /// </summary>
-    Task<(string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId)?> GetProfileClaimsAsync(string userId);
+    Task<(string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId, string? SubscriptionTier)?> GetProfileClaimsAsync(string userId);
+
+    /// <summary>
+    /// Resolves the ProfileId from a HomeownerId (ho-xxx).
+    /// </summary>
+    Task<string?> GetProfileIdByHomeownerIdAsync(string homeownerId);
+
+    /// <summary>
+    /// Sets consumption thresholds for a company profile.
+    /// </summary>
+    Task SetConsumptionThresholdsAsync(string profileId, Dictionary<string, decimal> thresholds);
 }
 
 

@@ -9,7 +9,7 @@ namespace Hampcoders.Electrolink.API.Monitoring.Domain.Model.Events;
 /// </summary>
 public record ServiceWaitTimeExtendedEvent(
     ServiceExecutionId ExecutionId,
-    HomeownerId HomeownerId,
+    ClientIdentity Owner,
     int ExtendedByMinutes,
     DateTime NewDeadline,
     DateTime ExtendedAt,

@@ -4,6 +4,7 @@ using Hampcoders.Electrolink.API.Processing.Domain.Model.Entities;
 using Hampcoders.Electrolink.API.Processing.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Processing.Domain.Repositories;
 using Hampcoders.Electrolink.API.Processing.Domain.Services;
+using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Shared.Domain.Repositories;
 using MediatR;
 
@@ -49,7 +50,7 @@ public class AnomalyCommandService(
             var anomaly = AnomalyRecord.Detect(
                 stream.DeviceId,
                 stream.PropertyId,
-                stream.HomeownerId,
+                stream.Owner,
                 detected.Value.type,
                 detected.Value.severity,
                 ReadingId.From(command.ReadingId));

@@ -11,17 +11,18 @@ namespace Hampcoders.Electrolink.API.Analytics.Domain.Model.Aggregates;
 public class AlertLog : BaseAggregateRoot
 {
     public AlertLogId LogId { get; private set; }
-    public HomeownerId HomeownerId { get; private set; }
+    public ClientIdentity Owner { get; private set; }
+    public HomeownerId HomeownerId => Owner.ToHomeownerId();
     public List<AlertEntry> Entries { get; private set; }
 
     private AlertLog() { }
 
-    public static AlertLog CreateFor(HomeownerId homeownerId)
+    public static AlertLog CreateFor(ClientIdentity owner)
     {
         var log = new AlertLog
         {
             LogId = AlertLogId.New(),
-            HomeownerId = homeownerId ?? throw new ArgumentNullException(nameof(homeownerId)),
+            Owner = owner ?? throw new ArgumentNullException(nameof(owner)),
             Entries = []
         };
         return log;
@@ -44,7 +45,7 @@ public class AlertLog : BaseAggregateRoot
         RaiseDomainEvent(new AlertRecorded(
             LogId.Value,
             entry.EntryId.Value,
-            HomeownerId.Value,
+            Owner.ClientId,
             alertType.ToString(),
             severity.ToString(),
             circuitId,
@@ -59,7 +60,7 @@ public class AlertLog : BaseAggregateRoot
         entry.Acknowledge();
 
         RaiseDomainEvent(new AlertAcknowledged(
-            LogId.Value, entry.EntryId.Value, HomeownerId.Value, DateTime.UtcNow));
+            LogId.Value, entry.EntryId.Value, Owner.ClientId, DateTime.UtcNow));
     }
 
     public void ResolveAlertBySourceEvent(SourceEventId sourceEventId)
@@ -75,7 +76,7 @@ public class AlertLog : BaseAggregateRoot
         entry.Resolve();
 
         RaiseDomainEvent(new AlertResolved(
-            LogId.Value, entry.EntryId.Value, HomeownerId.Value,
+            LogId.Value, entry.EntryId.Value, Owner.ClientId,
             sourceEventId.Value, DateTime.UtcNow));
     }
 

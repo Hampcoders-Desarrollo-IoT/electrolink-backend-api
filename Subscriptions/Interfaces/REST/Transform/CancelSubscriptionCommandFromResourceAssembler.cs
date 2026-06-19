@@ -5,9 +5,9 @@ namespace Hampcoders.Electrolink.API.Subscriptions.Interfaces.REST.Transform;
 
 public static class CancelSubscriptionCommandFromResourceAssembler
 {
-    public static CancelSubscriptionCommand ToCommand(string userId, CancelSubscriptionResource resource)
+    public static CancelSubscriptionCommand ToCommand(string profileId, CancelSubscriptionResource resource)
         => new(
-            UserId: userId,
+            ProfileId: profileId,
             Reason: resource.Reason,
             Feedback: resource.Feedback);
 }

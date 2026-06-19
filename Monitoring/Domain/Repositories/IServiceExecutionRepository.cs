@@ -17,9 +17,9 @@ public interface IServiceExecutionRepository : IBaseRepository<ServiceExecution,
     Task<IEnumerable<ServiceExecution>> FindByTechnicianIdAsync(TechnicianId technicianId);
 
     /// <summary>
-    /// Retrieves all service executions for a specific homeowner.
+    /// Retrieves all service executions for a specific owner.
     /// </summary>
-    Task<IEnumerable<ServiceExecution>> FindByHomeownerIdAsync(HomeownerId homeownerId);
+    Task<IEnumerable<ServiceExecution>> FindByOwnerAsync(ClientIdentity owner);
 
     /// <summary>
     /// Retrieves a service execution by its assignment ID.
@@ -37,8 +37,8 @@ public interface IServiceExecutionRepository : IBaseRepository<ServiceExecution,
     Task<bool> ExistsByAssignmentIdAsync(AssignmentId assignmentId);
 
     /// <summary>
-    /// Retrieves the active service execution for a specific homeowner.
+    /// Retrieves the active service execution for a specific owner.
     /// </summary>
-    Task<ServiceExecution?> FindActiveByHomeownerIdAsync(HomeownerId homeownerId);
+    Task<ServiceExecution?> FindActiveByOwnerAsync(ClientIdentity owner);
 }
 

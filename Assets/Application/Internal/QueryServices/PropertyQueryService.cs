@@ -21,7 +21,7 @@ public class PropertyQueryService(IPropertyRepository propertyRepository) : IPro
     {
         // Esta línea ahora funcionará porque el 'using' le dice al compilador
         // dónde encontrar 'PropertyId' y 'OwnerId'.
-        return await propertyRepository.FindByIdAndOwnerIdAsync(query.PropertyId, query.HomeownerId);
+        return await propertyRepository.FindByIdAndOwnerAsync(query.PropertyId, query.Owner);
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ public class PropertyQueryService(IPropertyRepository propertyRepository) : IPro
     public async Task<IEnumerable<Property>> Handle(GetAllPropertiesByOwnerIdQuery query)
     {
         var (items, _) = await propertyRepository.GetAllFilteredPaginatedAsync(
-            query.HomeownerId, query.City, query.Street, query.Page, query.PageSize);
+            query.Owner, query.City, query.Street, query.Page, query.PageSize);
         return items;
     }
     

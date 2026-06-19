@@ -6,6 +6,7 @@ using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Commands;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Repository;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Services;
+using Hampcoders.Electrolink.API.Subscriptions.Interfaces.ACL;
 using Hampcoders.Electrolink.API.Shared.Domain.Repositories;
 using MediatR;
 using Microsoft.Extensions.Options;
@@ -16,7 +17,7 @@ public class SubscriptionCommandService(
     ISubscriptionRepository subscriptionRepository,
     IPaymentProvider paymentProvider,
     ExternalIamService externalIamService,
-    ExternalProfileService externalProfileService,
+    ISubscriptionProfileResolver profileResolver,
     SubscriptionPlanPriceResolver priceResolver,
     IOptions<SubscriptionSettings> settings,
     IUnitOfWork unitOfWork,
@@ -24,21 +25,31 @@ public class SubscriptionCommandService(
 {
     public async Task<Subscription> Handle(CreateSubscriptionCommand command)
     {
-        if (await subscriptionRepository.ExistsByUserIdAsync(command.UserId))
-            throw new InvalidOperationException($"Subscription already exists for user {command.UserId}.");
+        if (await subscriptionRepository.ExistsByProfileIdAsync(command.ProfileId))
+            throw new InvalidOperationException($"Subscription already exists for profile {command.ProfileId}.");
 
-        var businessRole = BusinessRole.From(command.BusinessRole);
+        var businessRole = await profileResolver.ResolveBusinessRoleAsync(command.UserId.Value);
         var email = await externalIamService.GetUserEmailAsync(command.UserId.Value);
-        var name = await externalProfileService.FetchProfileFullName(command.UserId.Value)
+        var name = await profileResolver.ResolveProfileFullNameAsync(command.UserId.Value)
                    ?? email.Split('@')[0];
 
         var externalCustomerId = await paymentProvider.CreateCustomerAsync(
-            email, name, new Dictionary<string, string> { ["userId"] = command.UserId.Value }.AsReadOnly());
+            email, name, new Dictionary<string, string>
+            {
+                ["userId"] = command.UserId.Value,
+                ["profileId"] = command.ProfileId.Value
+            }.AsReadOnly());
+
+        var billingPolicy = businessRole.Value == EBusinessRole.Homeowner
+            ? (IBillingPolicy)new HomeownerBillingPolicy()
+            : new EnterpriseBillingPolicy();
 
         var subscription = Subscription.Initialize(
             command.UserId,
+            command.ProfileId,
             businessRole,
-            StripeCustomerId.From(externalCustomerId.Value));
+            StripeCustomerId.From(externalCustomerId.Value),
+            billingPolicy);
 
         await subscriptionRepository.AddAsync(subscription);
         await unitOfWork.CompleteAsync();
@@ -49,17 +60,17 @@ public class SubscriptionCommandService(
 
     public async Task<InitiateCheckoutResult> Handle(InitiateCheckoutCommand command)
     {
-        var subscription = await subscriptionRepository.FindByUserIdOrFailAsync(command.UserId);
+        var subscription = await subscriptionRepository.FindByProfileIdOrFailAsync(command.ProfileId);
         var planType = PlanType.From(command.PlanType);
         var billingCycle = BillingCycle.From(command.BillingCycle);
 
-        var priceId = planType.IsEnterprise
-            ? throw new InvalidOperationException("Enterprise checkout requires special handling.")
+        var priceId = planType.IsAnyEnterprise
+            ? priceResolver.ResolvePriceIdForRole(subscription.BusinessRole.Value, billingCycle.Value, planType.ToString())
             : priceResolver.ResolvePriceIdForRole(subscription.BusinessRole.Value, billingCycle.Value);
 
         var metadata = new Dictionary<string, string>
         {
-            ["userId"] = command.UserId,
+            ["profileId"] = command.ProfileId,
             ["planType"] = command.PlanType,
             ["billingCycle"] = command.BillingCycle
         }.AsReadOnly();
@@ -114,9 +125,14 @@ public class SubscriptionCommandService(
         if (subscription.HasPaymentWithInvoice(command.StripeInvoiceId))
             return null;
 
+        var planType = PlanType.From(command.PlanType);
+
         subscription.ActivateEnterprisePendingInstallation(
             StripeSubscriptionId.From(command.StripeSubscriptionId),
-            BillingPeriod.Of(command.PeriodStart, command.PeriodEnd));
+            BillingPeriod.Of(command.PeriodStart, command.PeriodEnd),
+            command.InitialDeviceCount,
+            command.PricePerDevice,
+            planType);
 
         var paymentRecord = PaymentRecord.Create(
             subscription.SubscriptionId,
@@ -199,7 +215,7 @@ public class SubscriptionCommandService(
 
     public async Task<Subscription> Handle(CancelSubscriptionCommand command)
     {
-        var subscription = await subscriptionRepository.FindByUserIdOrFailAsync(command.UserId);
+        var subscription = await subscriptionRepository.FindByProfileIdOrFailAsync(command.ProfileId);
 
         if (subscription.StripeSubscriptionId is not null)
         {
@@ -217,7 +233,7 @@ public class SubscriptionCommandService(
 
     public async Task<Subscription> Handle(IncrementMonthlyRequestCounterCommand command)
     {
-        var subscription = await subscriptionRepository.FindByUserIdOrFailAsync(command.UserId);
+        var subscription = await subscriptionRepository.FindByProfileIdOrFailAsync(command.ProfileId);
 
         if (subscription.PlanType.IsBasic && subscription.BusinessRole.Value == EBusinessRole.Homeowner)
         {
@@ -260,7 +276,7 @@ public class SubscriptionCommandService(
 
     public async Task<CustomerPortalResult> Handle(OpenCustomerPortalCommand command)
     {
-        var subscription = await subscriptionRepository.FindByUserIdOrFailAsync(command.UserId);
+        var subscription = await subscriptionRepository.FindByProfileIdOrFailAsync(command.ProfileId);
 
         if (subscription.StripeCustomerId is null)
             throw new InvalidOperationException("No Stripe customer associated with this subscription.");
@@ -294,6 +310,32 @@ public class SubscriptionCommandService(
         await PublishAndClearAsync(subscription);
 
         return subscription;
+    }
+
+    public async Task<Subscription> Handle(UpdateActiveDeviceCountCommand command)
+    {
+        var subscriptionId = SubscriptionId.From(command.SubscriptionId);
+        var subscription = await subscriptionRepository.FindByIdAsync(subscriptionId)
+            ?? throw new KeyNotFoundException($"Subscription {command.SubscriptionId} not found.");
+
+        subscription.UpdateActiveDeviceCount(command.NewActiveDeviceCount, command.Source);
+        subscriptionRepository.Update(subscription);
+        await unitOfWork.CompleteAsync();
+        await PublishAndClearAsync(subscription);
+
+        return subscription;
+    }
+
+    public async Task Handle(RecordInstallationServiceRequestCommand command)
+    {
+        var subscriptionId = SubscriptionId.From(command.SubscriptionId);
+        var subscription = await subscriptionRepository.FindByIdAsync(subscriptionId)
+            ?? throw new KeyNotFoundException($"Subscription {command.SubscriptionId} not found.");
+
+        subscription.SetInstallationServiceRequestId(command.ServiceRequestId);
+        subscriptionRepository.Update(subscription);
+        await unitOfWork.CompleteAsync();
+        await PublishAndClearAsync(subscription);
     }
 
     private async Task PublishAndClearAsync(Subscription subscription)

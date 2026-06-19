@@ -1,4 +1,6 @@
-﻿namespace Hampcoders.Electrolink.API.Planning.Interfaces.ACL;
+﻿using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
+
+namespace Hampcoders.Electrolink.API.Planning.Interfaces.ACL;
 
 public record RecipeDetailDto(
     bool? IsActive,
@@ -25,5 +27,5 @@ public interface IServiceDesignContextFacade
     Task<int?> GetRecipeWarrantyMonthsAsync(string recipeId, string technicianId);
     Task<string?> GetRecipeServiceCategoryAsync(string recipeId, string technicianId);
     Task<IReadOnlyList<(string componentTypeId, int quantity)>> GetRecipeComponentRequirementsAsync(string recipeId, string technicianId);
-    Task ReactivateServiceRequestAsync(string requestId, string homeownerId,string reason);
+    Task ReactivateServiceRequestAsync(string requestId, ClientIdentity client, string reason);
 }

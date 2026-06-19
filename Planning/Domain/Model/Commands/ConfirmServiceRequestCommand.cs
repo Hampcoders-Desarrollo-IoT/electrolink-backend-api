@@ -3,4 +3,4 @@ using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 
 namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Commands;
 
-public record ConfirmServiceRequestCommand(RequestId RequestId, HomeownerId HomeownerId);
+public record ConfirmServiceRequestCommand(RequestId RequestId, ClientIdentity Client);

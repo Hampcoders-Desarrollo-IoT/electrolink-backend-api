@@ -5,7 +5,7 @@ namespace Hampcoders.Electrolink.API.Processing.Domain.Model.Events;
 public record DeviceReconnectedEvent(
     string   DeviceId,
     string   PropertyId,
-    string   HomeownerId,
+    string   OwnerId,
     DateTime ReconnectedAt) : IEvent
 {
     public Guid EventId { get; init; } = Guid.NewGuid();

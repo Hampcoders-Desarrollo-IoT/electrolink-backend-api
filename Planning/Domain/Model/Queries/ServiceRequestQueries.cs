@@ -5,11 +5,11 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Queries;
 
 // ServiceRequest Queries
 public record GetServiceRequestByIdQuery(RequestId RequestId);
-public record GetServiceRequestByHomeownerIdAndIdQuery(HomeownerId HomeownerId, RequestId RequestId);
+public record GetServiceRequestByClientAndIdQuery(ClientIdentity Client, RequestId RequestId);
 
-public record GetAllRequestsByHomeownerQuery(HomeownerId HomeownerId);
+public record GetAllRequestsByClientQuery(ClientIdentity Client);
 
-public record GetRequestsByStatusQuery(HomeownerId HomeownerId, string Status);
+public record GetRequestsByClientAndStatusQuery(ClientIdentity Client, string Status);
 
 public record GetPendingAssignmentRequestsQuery(); // Para admin/sistema
 

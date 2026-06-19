@@ -11,10 +11,10 @@ namespace Hampcoders.Electrolink.API.Planning.Infrastructure.Persistence.EFC.Rep
 public class ServiceRequestRepository(AppDbContext context) : BaseRepository<ServiceRequest, RequestId>(context), IServiceRequestRepository
 {
 
-    public async Task<IEnumerable<ServiceRequest>> FindByHomeownerIdAsync(HomeownerId homeownerId)
+    public async Task<IEnumerable<ServiceRequest>> FindByClientAsync(ClientIdentity client)
     {
         return await Context.Set<ServiceRequest>()
-            .Where(r => r.HomeownerId == homeownerId)
+            .Where(r => r.Client == client)
             .OrderByDescending(r => r.RequestId)
             .ToListAsync();
     }

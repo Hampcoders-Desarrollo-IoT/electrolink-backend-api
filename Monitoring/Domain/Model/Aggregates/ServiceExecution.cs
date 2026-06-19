@@ -41,7 +41,11 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
     public AssignmentId AssignmentId { get; private set; } = null!;
     public RequestId RequestId { get; private set; } = null!;
     public TechnicianId TechnicianId { get; private set; } = null!;
-    public HomeownerId HomeownerId { get; private set; } = null!;
+    public ClientIdentity Owner { get; private set; } = null!;
+
+    public HomeownerId HomeownerId => Owner.IsHomeowner
+        ? Owner.ToHomeownerId()
+        : throw new InvalidOperationException("Owner is not a Homeowner");
     public PropertyId PropertyId { get; private set; } = null!;
     public RecipeSnapshot RecipeSnapshot { get; private set; } = null!;
     public EExecutionStatus Status { get; private set; }
@@ -79,7 +83,7 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
         if (command.AssignmentId == null) throw new ArgumentNullException(nameof(AssignmentId));
         if (command.RequestId == null) throw new ArgumentNullException(nameof(RequestId));
         if (command.TechnicianId == null) throw new ArgumentNullException(nameof(TechnicianId));
-        if (command.HomeownerId == null) throw new ArgumentNullException(nameof(HomeownerId));
+        if (command.Owner == null) throw new ArgumentNullException(nameof(Owner));
         if (command.PropertyId == null) throw new ArgumentNullException(nameof(PropertyId));
         if (command.RecipeSnapshot == null) throw new ArgumentNullException(nameof(RecipeSnapshot));
 
@@ -89,7 +93,7 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
             AssignmentId = command.AssignmentId,
             RequestId = command.RequestId,
             TechnicianId = command.TechnicianId,
-            HomeownerId = command.HomeownerId,
+            Owner = command.Owner,
             PropertyId = command.PropertyId,
             RecipeSnapshot = command.RecipeSnapshot,
             ScheduledDateTime = command.ScheduledDateTime,
@@ -114,7 +118,7 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
 
         RaiseDomainEvent(new ServiceExecutionStartedEvent(
             Id, AssignmentId,
-            TechnicianId, HomeownerId,
+            TechnicianId, Owner,
             previous, Status,
             startedAt, DateTime.UtcNow));
     }
@@ -128,7 +132,7 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
         Status = EExecutionStatus.EnRoute;
 
         RaiseDomainEvent(new ServiceStatusChangedEvent(
-            Id, AssignmentId, TechnicianId, HomeownerId,
+            Id, AssignmentId, TechnicianId, Owner,
             previous, Status, timestamp, DateTime.UtcNow));
     }
 
@@ -141,7 +145,7 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
         Status = EExecutionStatus.Arrived;
 
         RaiseDomainEvent(new ServiceStatusChangedEvent(
-            Id, AssignmentId, TechnicianId, HomeownerId,
+            Id, AssignmentId, TechnicianId, Owner,
             previous, Status, timestamp, DateTime.UtcNow));
     }
 
@@ -245,7 +249,7 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
             AssignmentId,
             RequestId,
             TechnicianId,
-            HomeownerId,
+            Owner,
             PropertyId,
             RecipeSnapshot.ServiceCategory.ToString(),
             _componentSubstitutions.Select(c => new ComponentUsage(
@@ -273,7 +277,7 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
             AssignmentId,
             RequestId,
             TechnicianId,
-            HomeownerId,
+            Owner,
             cancelledBy,
             reason.ToString(),
             notes,
@@ -308,33 +312,33 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
             Id,
             AssignmentId,
             TechnicianId,
-            HomeownerId,
+            Owner,
             EvaluationWindowExpiresAt.Value,
             DateTime.UtcNow,
             DateTime.UtcNow));
     }
 
-    public void SubmitClientReview(HomeownerId HomeownerId, int rating, string? comment, Dictionary<string, int> categories, DateTime submittedAt)
+    public void SubmitClientReview(ClientIdentity owner, int rating, string? comment, Dictionary<string, int> categories, DateTime submittedAt)
     {
         if (Status != EExecutionStatus.PendingReview && Status != EExecutionStatus.Completed)
             throw new InvalidOperationException(
                 $"Client review can only be submitted for PendingReview or Completed services, but status is {Status}.");
 
-        EnsureClientOwnership(HomeownerId);
+        EnsureClientOwnership(owner);
         EnsureEvaluationWindowOpen();
 
-        if (_evaluations.Any(e => e.ReviewerId == HomeownerId.Value && e.ReviewerRole == "Client"))
+        if (_evaluations.Any(e => e.ReviewerId == owner.ClientId && e.ReviewerRole == "Client"))
             throw new InvalidOperationException("Client has already submitted a review for this service.");
 
         if (rating < 1 || rating > 5)
             throw new ArgumentOutOfRangeException(nameof(rating), "Rating must be between 1 and 5.");
 
-        var eval = ServiceEvaluation.Create(Id, HomeownerId.Value, TechnicianId.Value, "Client", rating, comment, categories, submittedAt);
+        var eval = ServiceEvaluation.Create(Id, owner.ClientId, TechnicianId.Value, "Client", rating, comment, categories, submittedAt);
         _evaluations.Add(eval);
 
         RaiseDomainEvent(new ClientReviewSubmittedEvent(
             Id, AssignmentId,
-            HomeownerId.Value, TechnicianId.Value,
+            owner.ClientId, TechnicianId.Value,
             rating, categories, submittedAt, DateTime.UtcNow));
     }
 
@@ -353,12 +357,12 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
         if (rating < 1 || rating > 5)
             throw new ArgumentOutOfRangeException(nameof(rating), "Rating must be between 1 and 5.");
 
-        var eval = ServiceEvaluation.Create(Id, technicianId.Value, HomeownerId.Value, "Technician", rating, comment, categories, submittedAt);
+        var eval = ServiceEvaluation.Create(Id, technicianId.Value, Owner.ClientId, "Technician", rating, comment, categories, submittedAt);
         _evaluations.Add(eval);
 
         RaiseDomainEvent(new TechnicianReviewSubmittedEvent(
             Id, AssignmentId,
-            technicianId.Value, HomeownerId.Value,
+            technicianId.Value, Owner.ClientId,
             rating, categories, submittedAt, DateTime.UtcNow));
     }
 
@@ -389,14 +393,14 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
 
         RaiseDomainEvent(new TechnicianNoShowDetectedEvent(
             Id, AssignmentId,
-            TechnicianId, HomeownerId,
+            TechnicianId, Owner,
             ScheduledDateTime, detectedAt, minutesLate, DateTime.UtcNow));
     }
 
-    public void ExtendWaitTime(HomeownerId HomeownerId, int extendMinutes, DateTime requestedAt)
+    public void ExtendWaitTime(ClientIdentity owner, int extendMinutes, DateTime requestedAt)
     {
         EnsureTransitionValid(nameof(ExtendWaitTime));
-        EnsureClientOwnership(HomeownerId);
+        EnsureClientOwnership(owner);
 
         if (extendMinutes <= 0)
             throw new ArgumentException("Extension minutes must be positive.", nameof(extendMinutes));
@@ -404,7 +408,7 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
         WaitExtendedUntil = (NoShowDetectedAt ?? requestedAt).AddMinutes(extendMinutes);
 
         RaiseDomainEvent(new ServiceWaitTimeExtendedEvent(
-            Id, HomeownerId,
+            Id, owner,
             extendMinutes, WaitExtendedUntil.Value, requestedAt, DateTime.UtcNow));
     }
 
@@ -463,11 +467,11 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
                 $"Technician {technicianId} is not assigned to this service execution.");
     }
 
-    private void EnsureClientOwnership(HomeownerId HomeownerId)
+    private void EnsureClientOwnership(ClientIdentity owner)
     {
-        if (HomeownerId != HomeownerId)
+        if (Owner != owner)
             throw new UnauthorizedAccessException(
-                $"Client {HomeownerId} is not the owner of this service execution.");
+                $"Client {owner} is not the owner of this service execution.");
     }
 
     private void EnsureEvaluationWindowOpen()

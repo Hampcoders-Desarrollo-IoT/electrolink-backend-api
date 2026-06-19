@@ -6,7 +6,7 @@ namespace Hampcoders.Electrolink.API.Assets.Domain.Model.Events;
 
 public record PropertyArchivedEvent(
     PropertyId PropertyId,
-    HomeownerId HomeownerId,
+    ClientIdentity Owner,
     string Reason,
     DateTime OccurredOn
 ) : IEvent

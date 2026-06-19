@@ -2,4 +2,4 @@
 
 namespace Hampcoders.Electrolink.API.Assets.Domain.Model.Commands;
 
-public record AddPropertyToPortfolioCommand(HomeownerId HomeownerId, PropertyId PropertyId, string Nickname, bool IsPrimary, string OccupancyStatus);
+public record AddPropertyToPortfolioCommand(ClientIdentity Owner, PropertyId PropertyId, string Nickname, bool IsPrimary, string OccupancyStatus);

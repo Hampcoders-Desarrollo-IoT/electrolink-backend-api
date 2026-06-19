@@ -9,7 +9,8 @@ namespace Hampcoders.Electrolink.API.Analytics.Domain.Model.Aggregates;
 public class ConsumptionDashboard : BaseAggregateRoot
 {
     public ConsumptionDashboardId DashboardId { get; private set; }
-    public HomeownerId HomeownerId { get; private set; }
+    public ClientIdentity Owner { get; private set; }
+    public HomeownerId HomeownerId => Owner.ToHomeownerId();
     public PropertyId PropertyId { get; private set; }
     public List<DeviceId> DeviceIds { get; private set; }
     public PlanTier PlanTier { get; private set; }
@@ -23,7 +24,7 @@ public class ConsumptionDashboard : BaseAggregateRoot
     private ConsumptionDashboard() { }
 
     public static ConsumptionDashboard Initialize(
-        HomeownerId HomeownerId,
+        ClientIdentity owner,
         PropertyId propertyId,
         List<DeviceId> deviceIds,
         PlanTier planTier)
@@ -34,7 +35,7 @@ public class ConsumptionDashboard : BaseAggregateRoot
         var dashboard = new ConsumptionDashboard
         {
             DashboardId = ConsumptionDashboardId.New(),
-            HomeownerId = HomeownerId ?? throw new ArgumentNullException(nameof(HomeownerId)),
+            Owner = owner ?? throw new ArgumentNullException(nameof(owner)),
             PropertyId = propertyId ?? throw new ArgumentNullException(nameof(propertyId)),
             DeviceIds = [.. deviceIds],
             PlanTier = planTier,
@@ -47,7 +48,7 @@ public class ConsumptionDashboard : BaseAggregateRoot
 
         dashboard.RaiseDomainEvent(new DashboardInitialized(
             dashboard.DashboardId.Value,
-            dashboard.HomeownerId.Value,
+            dashboard.Owner.ClientId,
             dashboard.PropertyId.Value,
             dashboard.PlanTier.ToString(),
             DateTime.UtcNow));
@@ -68,12 +69,12 @@ public class ConsumptionDashboard : BaseAggregateRoot
         LastUpdatedAt = DateTime.UtcNow;
 
         RaiseDomainEvent(new DashboardUpdated(
-            DashboardId.Value, HomeownerId.Value, kWh, DateTime.UtcNow));
+            DashboardId.Value, Owner.ClientId, kWh, DateTime.UtcNow));
 
         if (CheckThresholdExceeded(circuitId, kWh, out var threshold))
         {
             RaiseDomainEvent(new ConsumptionThresholdExceeded(
-                DashboardId.Value, HomeownerId.Value, circuitId, kWh, threshold, DateTime.UtcNow));
+                DashboardId.Value, Owner.ClientId, circuitId, kWh, threshold, DateTime.UtcNow));
         }
 
         return true;
@@ -102,7 +103,7 @@ public class ConsumptionDashboard : BaseAggregateRoot
         LastUpdatedAt = DateTime.UtcNow;
 
         RaiseDomainEvent(new CostProjectionUpdated(
-            DashboardId.Value, HomeownerId.Value,
+            DashboardId.Value, Owner.ClientId,
             CostProjection.Amount, CostProjection.Currency, DateTime.UtcNow));
     }
 
@@ -114,7 +115,7 @@ public class ConsumptionDashboard : BaseAggregateRoot
         LastUpdatedAt = DateTime.UtcNow;
 
         RaiseDomainEvent(new DashboardTierUpgraded(
-            DashboardId.Value, HomeownerId.Value, newTier.ToString(), DateTime.UtcNow));
+            DashboardId.Value, Owner.ClientId, newTier.ToString(), DateTime.UtcNow));
     }
 
     public void UpdateConsumptionThresholds(Dictionary<string, decimal> thresholds)

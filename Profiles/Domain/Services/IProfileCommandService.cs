@@ -14,6 +14,7 @@ public interface IProfileCommandService
     Task<bool> Handle(UpdateTechnicianSpecialtiesCommand command);
     Task<Profile> Handle(CompleteProfileAsTechnicianCommand command);
     Task<Profile> Handle(CompleteProfileAsHomeownerCommand command);
+    Task<Profile> Handle(CompleteProfileAsCompanyCommand command);
     Task<Profile> Handle(UpdateProfilePersonalDataCommand command);
     Task<Profile> Handle(UpdateTechnicianDataCommand command);
     Task<Profile> Handle(UpdateCommunicationPreferencesCommand command);
@@ -23,4 +24,6 @@ public interface IProfileCommandService
     Task Handle(RemoveProfilePhotoCommand command);
     Task Handle(DeactivateProfileCommand command);
     Task Handle(ReactivateProfileCommand command);
+    Task Handle(GrantIoTCertificationCommand command);
+    Task Handle(RevokeIoTCertificationCommand command);
 }

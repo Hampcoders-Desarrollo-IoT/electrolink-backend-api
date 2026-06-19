@@ -9,7 +9,7 @@ public static class ConsumptionReportResourceFromEntityAssembler
     {
         return new ConsumptionReportResource(
             report.ReportId.Value,
-            report.RequestedByHomeownerId.Value,
+            report.RequestedBy.ClientId,
             report.PropertyId.Value,
             report.PeriodStart,
             report.PeriodEnd,

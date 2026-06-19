@@ -18,9 +18,12 @@ public class AlertLogConfiguration : IEntityTypeConfiguration<AlertLog>
             .HasConversion(id => id.Value, v => AlertLogId.From(v))
             .HasColumnName("log_id");
 
-        builder.Property(l => l.HomeownerId)
-            .HasConversion(id => id.Value, v => HomeownerId.From(v))
-            .HasColumnName("homeowner_id");
+        builder.OwnsOne(l => l.Owner, o =>
+        {
+            o.WithOwner().HasForeignKey("LogId");
+            o.Property(c => c.ClientType).HasConversion<string>().HasColumnName("owner_type").HasMaxLength(20).IsRequired();
+            o.Property(c => c.ClientId).HasColumnName("owner_id").HasMaxLength(100).IsRequired();
+        });
 
         builder.OwnsMany(l => l.Entries, e =>
         {

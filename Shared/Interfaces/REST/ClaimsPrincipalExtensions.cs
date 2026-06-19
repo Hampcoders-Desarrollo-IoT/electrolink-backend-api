@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 
 namespace Hampcoders.Electrolink.API.Shared.Interfaces.REST;
 
@@ -9,8 +10,8 @@ namespace Hampcoders.Electrolink.API.Shared.Interfaces.REST;
 ///   nameidentifier → userId  (us-{guid})
 ///   emailaddress   → email
 ///   profileId      → prof-{guid}
-///   businessRole   → "Technician" | "HomeOwner"
-///   roleSubjectId  → tech-{guid} | ho-{guid}
+///   businessRole   → "Technician" | "HomeOwner" | "Company"
+///   roleSubjectId  → tech-{guid} | ho-{guid} | comp-{guid}
 /// </summary>
 public static class ClaimsPrincipalExtensions
 {
@@ -31,7 +32,7 @@ public static class ClaimsPrincipalExtensions
            ?? throw new UnauthorizedAccessException("businessRole claim not found.");
 
     /// <summary>
-    /// Returns technicianId or homeownerId according the authenticated user business role.
+    /// Returns technicianId, homeownerId or companyId according the authenticated user business role.
     /// </summary>
     public static string GetRoleSubjectId(this ClaimsPrincipal user)
         => user.FindFirstValue("roleSubjectId")
@@ -43,6 +44,9 @@ public static class ClaimsPrincipalExtensions
 
     public static bool IsHomeOwner(this ClaimsPrincipal user)
         => user.FindFirstValue("businessRole") == "HomeOwner";
+
+    public static bool IsCompany(this ClaimsPrincipal user)
+        => user.FindFirstValue("businessRole") == "Company";
 
     /// <summary>
     /// Returns TechnicianId. Throws if User is not Technician.
@@ -62,6 +66,17 @@ public static class ClaimsPrincipalExtensions
         if (!user.IsHomeOwner())
             throw new UnauthorizedAccessException("Current user is not a HomeOwner.");
         return user.GetRoleSubjectId();
+    }
+
+    /// <summary>
+    /// Returns ClientIdentity from JWT claims (businessRole + roleSubjectId).
+    /// Works for HomeOwner and Company roles. Throws for Technician.
+    /// </summary>
+    public static ClientIdentity GetClientIdentity(this ClaimsPrincipal user)
+    {
+        var role = GetBusinessRole(user);
+        var subjectId = GetRoleSubjectId(user);
+        return ClientIdentity.From(role, subjectId);
     }
 
 }

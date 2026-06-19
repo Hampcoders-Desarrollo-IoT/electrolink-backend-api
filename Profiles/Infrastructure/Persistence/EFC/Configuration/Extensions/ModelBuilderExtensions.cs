@@ -22,6 +22,9 @@ public static class ModelBuilderExtensions
     private static readonly ValueConverter<TechnicianId, string> TechnicianIdConverter =
         new(id => id.Value, raw => TechnicianId.From(raw));
 
+    private static readonly ValueConverter<CompanyId, string> CompanyIdConverter =
+        new(id => id.Value, raw => CompanyId.From(raw));
+
     private const string ProfileIdFk = "profile_id";
 
     public static void ApplyProfilesConfiguration(this ModelBuilder builder)
@@ -47,6 +50,10 @@ public static class ModelBuilderExtensions
             b.Property(p => p.BusinessRole)
                 .HasConversion<string>()
                 .HasColumnName("business_role");
+
+            b.Property(p => p.SubscriptionTier)
+                .HasColumnName("subscription_tier")
+                .HasMaxLength(30);
 
             b.OwnsOne(p => p.Photo, ph =>
             {
@@ -111,6 +118,10 @@ public static class ModelBuilderExtensions
             b.HasOne(p => p.Technician)
                 .WithOne()
                 .HasForeignKey<Technician>(t => t.ProfileId);
+
+            b.HasOne(p => p.Company)
+                .WithOne()
+                .HasForeignKey<Company>(c => c.ProfileId);
         });
 
         // ── HomeOwner ─────────────────────────────────────────────────────
@@ -142,6 +153,13 @@ public static class ModelBuilderExtensions
             {
                 ec.WithOwner().HasForeignKey("HomeownerId");
             });
+
+            b.Property(ho => ho.AverageRating)
+                .HasColumnName("average_rating")
+                .HasDefaultValue(0.0);
+            b.Property(ho => ho.ActiveServiceCount)
+                .HasColumnName("active_service_count")
+                .HasDefaultValue(0);
         });
 
         // ── Technician ────────────────────────────────────────────────────
@@ -158,6 +176,32 @@ public static class ModelBuilderExtensions
 
             b.Property(t => t.ExperienceYears).IsRequired();
             b.Property(t => t.AboutMe).HasMaxLength(2000);
+
+            b.Property(t => t.AverageRating)
+                .HasColumnName("average_rating")
+                .HasDefaultValue(0.0);
+
+            b.Property(t => t.ActiveServiceCount)
+                .HasColumnName("active_service_count")
+                .HasDefaultValue(0);
+
+            b.Ignore(t => t.PortfolioItems);
+
+            b.Property(t => t.IsIoTCertified)
+                .HasColumnName("is_iot_certified")
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            b.OwnsOne(t => t.IoTCertification, cert =>
+            {
+                cert.WithOwner().HasForeignKey("TechnicianId");
+                cert.Property(c => c.Name).HasColumnName("iot_cert_name").HasMaxLength(200);
+                cert.Property(c => c.IssuerOrganization).HasColumnName("iot_cert_issuer").HasMaxLength(200);
+                cert.Property(c => c.DateObtained).HasColumnName("iot_cert_date_obtained");
+                cert.Property(c => c.ExpirationDate).HasColumnName("iot_cert_expiration");
+                cert.Property(c => c.CredentialId).HasColumnName("iot_cert_credential_id").HasMaxLength(100);
+                cert.Property(c => c.CredentialUrl).HasColumnName("iot_cert_credential_url").HasMaxLength(500);
+            });
             
             b.OwnsOne(t => t.ServiceArea, sa =>
             {
@@ -190,6 +234,61 @@ public static class ModelBuilderExtensions
              .WithOne(nameof(TechnicianSpecialty.Technician))
              .HasForeignKey("TechnicianId")
              .IsRequired();
+        });
+
+        // ── Company ──────────────────────────────────────────────────────
+        builder.Entity<Company>(b =>
+        {
+            b.HasKey(c => c.CompanyId);
+            b.Property(c => c.CompanyId)
+             .HasConversion(CompanyIdConverter)
+             .IsRequired();
+
+            b.Property(c => c.ProfileId)
+             .HasConversion(ProfileIdConverter)
+             .IsRequired();
+
+            b.OwnsOne(c => c.CompanyData, cd =>
+            {
+                cd.WithOwner().HasForeignKey("CompanyId");
+                cd.Property(v => v.CompanyName)
+                    .HasColumnName("company_name")
+                    .HasMaxLength(200)
+                    .IsRequired();
+
+                cd.OwnsOne(v => v.TaxId, t =>
+                {
+                    t.WithOwner().HasForeignKey("CompanyId");
+                    t.Property(p => p.Value)
+                        .HasColumnName("company_tax_id")
+                        .HasMaxLength(50)
+                        .IsRequired();
+                });
+
+                cd.Property(v => v.Industry)
+                    .HasColumnName("company_industry")
+                    .HasMaxLength(100);
+
+                cd.Property(v => v.Size)
+                    .HasColumnName("company_size")
+                    .HasConversion<string>()
+                    .IsRequired();
+
+                cd.Property(v => v.Website)
+                    .HasColumnName("company_website")
+                    .HasMaxLength(500);
+
+                cd.OwnsOne(v => v.BillingAddress, a =>
+                {
+                    a.WithOwner().HasForeignKey("CompanyId");
+                    a.Property(s => s.Street).HasColumnName("billing_street");
+                    a.Property(s => s.Number).HasColumnName("billing_number");
+                    a.Property(s => s.District).HasColumnName("billing_district");
+                    a.Property(s => s.City).HasColumnName("billing_city");
+                    a.Property(s => s.PostalCode).HasColumnName("billing_postal_code");
+                    a.Property(s => s.Country).HasColumnName("billing_country");
+                });
+            });
         });
 
         // ── TechnicianSpecialty ───────────────────────────────────────────

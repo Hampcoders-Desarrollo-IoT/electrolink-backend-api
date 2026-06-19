@@ -9,7 +9,7 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Aggregates;
 public class ServiceRequest : BaseAggregateRoot
 {
     public RequestId RequestId { get; private set; }
-    public HomeownerId HomeownerId { get; private set; }
+    public ClientIdentity Client { get; private set; }
     public ERequestStatus Status { get; private set; }
 
     public PropertyId? PropertyId { get; private set; }
@@ -22,24 +22,54 @@ public class ServiceRequest : BaseAggregateRoot
     public RequestPreferences? Preferences { get; private set; }
     public bool IsPriority { get; private set; }
     public bool RequiresIoTCertifiedTechnician { get; private set; }
+    public IoTContextSnapshot? IotContextSnapshot { get; private set; }
+    
+    // ── IoT Installation fields ──────────────────────────────
+    public string? SubscriptionId { get; private set; }
+    public string? UserId { get; private set; }
+    public int RequiredDeviceCount { get; private set; }
+    public DateTime? InstallationDeadlineAt { get; private set; }
+
     private ServiceRequest() { }
+
+    public HomeownerId HomeownerId => Client.IsHomeowner
+        ? Client.ToHomeownerId()
+        : throw new InvalidOperationException("Client is not a Homeowner");
 
     // ── Factory ───────────────────────────────────────────
 
     public static ServiceRequest Initiate(
-        HomeownerId homeownerId,
+        ClientIdentity client,
         bool canMarkAsPriority,
         int? remainingRequests)
     {
         var request = new ServiceRequest
         {
             RequestId   = RequestId.NewId(),
-            HomeownerId = homeownerId,
+            Client      = client,
             Status      = ERequestStatus.Draft,
             IsPriority  = false,
         };
         request.RaiseDomainEvent(new ServiceRequestInitiatedEvent(
-            request.RequestId, homeownerId, canMarkAsPriority, remainingRequests, DateTime.UtcNow));
+            request.RequestId, client, canMarkAsPriority, remainingRequests, DateTime.UtcNow));
+        return request;
+    }
+
+    public static ServiceRequest CreateIoTInstallationRequest(
+        string subscriptionId,
+        string userId,
+        int requiredDeviceCount,
+        DateTime installationDeadline)
+    {
+        var request = new ServiceRequest
+        {
+            RequestId = RequestId.NewId(),
+            SubscriptionId = subscriptionId,
+            UserId = userId,
+            RequiredDeviceCount = requiredDeviceCount,
+            InstallationDeadlineAt = installationDeadline,
+            Status = ERequestStatus.PendingInstallation,
+        };
         return request;
     }
 
@@ -82,7 +112,7 @@ public class ServiceRequest : BaseAggregateRoot
         EnsureStatus(ERequestStatus.ReadyToConfirm);
         Status = ERequestStatus.PendingAssignment;
         RaiseDomainEvent(new ServiceRequestCreatedEvent(
-            RequestId, HomeownerId, PropertyId!, SelectedRecipeId!,
+            RequestId, Client, PropertyId!, SelectedRecipeId!,
             SelectedTechnicianId!, RecipeSnapshot!, IsPriority, DateTime.UtcNow));
     }
 
@@ -101,7 +131,7 @@ public class ServiceRequest : BaseAggregateRoot
         var wasInQueue = Status == ERequestStatus.PendingAssignment;
         Status = ERequestStatus.Cancelled;
         RaiseDomainEvent(new ServiceRequestCancelledEvent(
-            RequestId, HomeownerId, reason, wasInQueue, notes, DateTime.UtcNow));
+            RequestId, Client, reason, wasInQueue, notes, DateTime.UtcNow));
     }
 
     public void MarkAsAssigned(AssignmentId assignmentId, TechnicianId technicianId, RecipeSnapshot snapshot)
@@ -118,7 +148,7 @@ public class ServiceRequest : BaseAggregateRoot
     {
         EnsureStatus(ERequestStatus.PendingAssignment);
         Status = ERequestStatus.Expired;
-        RaiseDomainEvent(new ServiceRequestExpiredEvent(RequestId, HomeownerId, DateTime.UtcNow));
+        RaiseDomainEvent(new ServiceRequestExpiredEvent(RequestId, Client, DateTime.UtcNow));
     }
 
     public void Reactivate()
@@ -135,9 +165,14 @@ public class ServiceRequest : BaseAggregateRoot
         Status = ERequestStatus.PendingAssignment;
 
         RaiseDomainEvent(new ServiceRequestReactivatedEvent(
-            RequestId, HomeownerId, IsPriority, DateTime.UtcNow));
+            RequestId, Client, IsPriority, DateTime.UtcNow));
     }
     
+    public void SetIotContextSnapshot(IoTContextSnapshot snapshot)
+    {
+        IotContextSnapshot = snapshot;
+    }
+
     // ── Invariants ────────────────────────────────────────
 
     private void EnsureStatus(ERequestStatus expected)

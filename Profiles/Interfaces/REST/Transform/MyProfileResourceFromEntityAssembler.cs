@@ -25,7 +25,8 @@ public class MyProfileResourceFromEntityAssembler
             Country:      entity.PersonalData?.Address?.Country,
             PostalCode:   entity.PersonalData?.Address?.PostalCode,
             Technician:   entity.Technician is null ? null : MapTechnician(entity.Technician),
-            Homeowner:    entity.Homeowner is null ? null : MapHomeowner(entity.Homeowner));
+            Homeowner:    entity.Homeowner is null ? null : MapHomeowner(entity.Homeowner),
+            Company:      entity.Company is null ? null : MapCompany(entity.Company));
 
     private static PersonalDataResource MapPersonalData(PersonalData pd) =>
         new(pd.FirstName,
@@ -59,4 +60,18 @@ public class MyProfileResourceFromEntityAssembler
             h.EmergencyContact?.Relationship,
             h.EmergencyContact?.PhoneNumber
             );
+
+    private static CompanyProfileResource MapCompany(Company c) =>
+        new(c.CompanyId.Value,
+            c.CompanyData.CompanyName,
+            c.CompanyData.TaxId.Value,
+            c.CompanyData.Industry,
+            c.CompanyData.Size.ToString(),
+            c.CompanyData.Website,
+            c.CompanyData.BillingAddress.Street,
+            c.CompanyData.BillingAddress.Number,
+            c.CompanyData.BillingAddress.District,
+            c.CompanyData.BillingAddress.City,
+            c.CompanyData.BillingAddress.Country,
+            c.CompanyData.BillingAddress.PostalCode);
 }

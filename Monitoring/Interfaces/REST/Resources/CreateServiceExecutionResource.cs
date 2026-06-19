@@ -4,7 +4,7 @@ public record CreateServiceExecutionResource(
     string AssignmentId,     
     string RequestId,
     string TechnicianId,
-    string HomeownerId,
+    string OwnerId,
     string PropertyId,
     RecipeSnapshotResource RecipeSnapshot,
     DateTime ScheduledDateTime,

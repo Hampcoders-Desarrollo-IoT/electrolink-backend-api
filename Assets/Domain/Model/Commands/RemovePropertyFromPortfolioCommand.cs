@@ -2,4 +2,4 @@
 
 namespace Hampcoders.Electrolink.API.Assets.Domain.Model.Commands;
 
-public record RemovePropertyFromPortfolioCommand(HomeownerId HomeownerId, PropertyId PropertyId, string Reason);
+public record RemovePropertyFromPortfolioCommand(ClientIdentity Owner, PropertyId PropertyId, string Reason);

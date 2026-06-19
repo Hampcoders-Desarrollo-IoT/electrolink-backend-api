@@ -1,4 +1,5 @@
 using Hampcoders.Electrolink.API.Assets.Domain.Model.Commands;
+using Hampcoders.Electrolink.API.Assets.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Assets.Interfaces.REST.Resources;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 
@@ -19,7 +20,10 @@ public static class CreatePropertyCommandFromResourceAssembler
         
         var geolocation = Geolocation.Create(resource.Geolocation.Latitude, resource.Geolocation.Longitude, resource.Geolocation.Accuracy, "MANUAL");
 
+        var propertyType = Enum.TryParse<EPropertyType>(resource.PropertyType, ignoreCase: true, out var parsed)
+            ? parsed
+            : EPropertyType.Residential;
 
-        return new CreatePropertyCommand(HomeownerId.From(homeownerId), address, geolocation);
+        return new CreatePropertyCommand(ClientIdentity.FromHomeowner(homeownerId), address, geolocation, propertyType);
     }
 }

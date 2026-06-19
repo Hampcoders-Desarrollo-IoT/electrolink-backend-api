@@ -11,7 +11,7 @@ public record EvaluationWindowOpenedEvent(
     ServiceExecutionId ExecutionId,
     AssignmentId AssignmentId,
     TechnicianId TechnicianId,
-    HomeownerId HomeownerId,
+    ClientIdentity Owner,
     DateTime ExpiresAt,
     DateTime OpenedAt,
     DateTime OccurredOn) : IEvent

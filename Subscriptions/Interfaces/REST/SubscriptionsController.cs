@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+﻿using Hampcoders.Electrolink.API.Shared.Interfaces.REST;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Commands;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Queries;
 using Hampcoders.Electrolink.API.Subscriptions.Domain.Services;
@@ -19,8 +19,8 @@ public class SubscriptionsController(
     [Authorize]
     public async Task<IActionResult> GetMySubscription()
     {
-        var userId       = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var subscription = await queryService.Handle(new GetMySubscriptionQuery(userId));
+        var profileId   = User.GetProfileId();
+        var subscription = await queryService.Handle(new GetMySubscriptionQuery(profileId));
         return Ok(MySubscriptionResourceFromEntityAssembler.ToResource(subscription));
     }
 
@@ -28,8 +28,8 @@ public class SubscriptionsController(
     [Authorize]
     public async Task<IActionResult> GetRequestEligibility()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var result = await queryService.Handle(new GetRequestEligibilityQuery(userId));
+        var profileId = User.GetProfileId();
+        var result = await queryService.Handle(new GetRequestEligibilityQuery(profileId));
         return Ok(RequestEligibilityResourceFromEntityAssembler.ToResource(result));
     }
 
@@ -43,8 +43,8 @@ public class SubscriptionsController(
         if (pageSize < 1) pageSize = 20;
         if (pageSize > 100) pageSize = 100;
 
-        var userId  = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var records = await queryService.Handle(new GetPaymentHistoryQuery(userId, page, pageSize));
+        var profileId = User.GetProfileId();
+        var records = await queryService.Handle(new GetPaymentHistoryQuery(profileId, page, pageSize));
         return Ok(PaymentHistoryResourceFromEntityAssembler.ToResource(records, page, pageSize));
     }
 
@@ -52,8 +52,8 @@ public class SubscriptionsController(
     [Authorize]
     public async Task<IActionResult> GetStatusAlert()
     {
-        var userId       = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var subscription = await queryService.Handle(new GetSubscriptionStatusAlertQuery(userId));
+        var profileId   = User.GetProfileId();
+        var subscription = await queryService.Handle(new GetSubscriptionStatusAlertQuery(profileId));
 
         if (subscription is null) return NoContent();
 
@@ -64,8 +64,8 @@ public class SubscriptionsController(
     [Authorize]
     public async Task<IActionResult> InitiateCheckout([FromBody] InitiateCheckoutResource resource)
     {
-        var userId     = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var command    = InitiateCheckoutCommandFromResourceAssembler.ToCommand(userId, resource);
+        var profileId = User.GetProfileId();
+        var command   = InitiateCheckoutCommandFromResourceAssembler.ToCommand(profileId, resource);
         var result = await commandService.Handle(command);
         return Ok(new CheckoutUrlResource(result.CheckoutUrl, result.SessionId));
     }
@@ -74,8 +74,8 @@ public class SubscriptionsController(
     [Authorize]
     public async Task<IActionResult> CancelSubscription([FromBody] CancelSubscriptionResource resource)
     {
-        var userId  = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var command = CancelSubscriptionCommandFromResourceAssembler.ToCommand(userId, resource);
+        var profileId = User.GetProfileId();
+        var command   = CancelSubscriptionCommandFromResourceAssembler.ToCommand(profileId, resource);
         var subscription = await commandService.Handle(command);
         return Ok(MySubscriptionResourceFromEntityAssembler.ToResource(subscription));
     }
@@ -84,8 +84,8 @@ public class SubscriptionsController(
     [Authorize]
     public async Task<IActionResult> OpenCustomerPortal([FromBody] OpenCustomerPortalResource resource)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var command = new OpenCustomerPortalCommand(userId, resource.ReturnUrl);
+        var profileId = User.GetProfileId();
+        var command = new OpenCustomerPortalCommand(profileId, resource.ReturnUrl);
         var result = await commandService.Handle(command);
         return Ok(new CustomerPortalUrlResource(result.PortalUrl));
     }

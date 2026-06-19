@@ -5,7 +5,8 @@ namespace Hampcoders.Electrolink.API.IAM.Domain.Model.Events;
 public record UserRegisteredEvent(
     string UserId,
     string Username,
-    DateTime OccurredOn
+    DateTime OccurredOn,
+    string Role
 ) : IEvent
 {
     public Guid EventId { get; init; } = Guid.NewGuid();

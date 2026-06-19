@@ -36,7 +36,7 @@ public class DeviceInstalledEventHandler(
             var stream = DeviceReadingStream.Create(
                 DeviceId.From(notification.DeviceId),
                 PropertyId.From(notification.PropertyId),
-                HomeownerId.From(deviceInfo.HomeownerId));
+                ClientIdentity.FromHomeowner(deviceInfo.OwnerId));
 
             await streamRepository.AddAsync(stream);
         }

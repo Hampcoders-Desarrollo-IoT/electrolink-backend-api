@@ -8,7 +8,7 @@ public static class AddPropertyToPortfolioCommandFromResourceAssembler
 {
     public static AddPropertyToPortfolioCommand ToCommandFromResource(AddPropertyToPortfolioResource resource, string homeownerId)
         => new AddPropertyToPortfolioCommand(
-            HomeownerId.From(homeownerId),
+            ClientIdentity.FromHomeowner(homeownerId),
             PropertyId.From(resource.PropertyId),
             resource.Nickname,
             resource.IsPrimary,

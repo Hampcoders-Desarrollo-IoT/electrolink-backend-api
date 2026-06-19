@@ -18,6 +18,8 @@ public interface ISubscriptionCommandService
     Task<Subscription> Handle(UpdateBillingCycleCommand command);
     Task<CustomerPortalResult> Handle(OpenCustomerPortalCommand command);
     Task<Subscription> Handle(CancelEnterpriseSubscriptionWithRefundCommand command);
+    Task<Subscription> Handle(UpdateActiveDeviceCountCommand command);
+    Task Handle(RecordInstallationServiceRequestCommand command);
 }
 
 public record CustomerPortalResult(string PortalUrl);

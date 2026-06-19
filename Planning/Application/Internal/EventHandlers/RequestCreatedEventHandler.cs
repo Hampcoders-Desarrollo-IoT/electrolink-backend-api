@@ -13,9 +13,9 @@ public class RequestCreatedEventHandler(ILogger<RequestCreatedEventHandler> logg
     public Task Handle(RequestCreatedEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "Request created: {RequestId} for Client: {HomeownerId} at {Timestamp}",
+            "Request created: {RequestId} for Client: {Client} at {Timestamp}",
             notification.RequestId,
-            notification.HomeownerId,
+            notification.Client,
             notification.OccurredOn);
 
         return Task.CompletedTask;

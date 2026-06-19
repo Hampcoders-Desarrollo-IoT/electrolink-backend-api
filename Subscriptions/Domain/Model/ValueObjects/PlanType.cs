@@ -4,7 +4,8 @@ public enum EPlanType
 {
     Basic,
     Premium,
-    Enterprise
+    EnterpriseBasic,
+    EnterprisePremium
 }
 
 public record PlanType
@@ -18,11 +19,14 @@ public record PlanType
 
     public static PlanType Basic => new(EPlanType.Basic);
     public static PlanType Premium => new(EPlanType.Premium);
-    public static PlanType Enterprise => new(EPlanType.Enterprise);
+    public static PlanType EnterpriseBasic => new(EPlanType.EnterpriseBasic);
+    public static PlanType EnterprisePremium => new(EPlanType.EnterprisePremium);
 
     public bool IsBasic => Value == EPlanType.Basic;
     public bool IsPremium => Value == EPlanType.Premium;
-    public bool IsEnterprise => Value == EPlanType.Enterprise;
+    public bool IsEnterpriseBasic => Value == EPlanType.EnterpriseBasic;
+    public bool IsEnterprisePremium => Value == EPlanType.EnterprisePremium;
+    public bool IsAnyEnterprise => Value is EPlanType.EnterpriseBasic or EPlanType.EnterprisePremium;
 
     public static PlanType From(string value)
     {
@@ -33,10 +37,18 @@ public record PlanType
         {
             "BASIC" => Basic,
             "PREMIUM" => Premium,
-            "ENTERPRISE" => Enterprise,
+            "ENTERPRISEBASIC" => EnterpriseBasic,
+            "ENTERPRISE_BASIC" => EnterpriseBasic,
+            "ENTERPRISEPREMIUM" => EnterprisePremium,
+            "ENTERPRISE_PREMIUM" => EnterprisePremium,
             _ => throw new ArgumentException($"Invalid PlanType: {value}")
         };
     }
 
-    public override string ToString() => Value.ToString().ToUpperInvariant();
+    public override string ToString() => Value switch
+    {
+        EPlanType.EnterpriseBasic => "ENTERPRISE_BASIC",
+        EPlanType.EnterprisePremium => "ENTERPRISE_PREMIUM",
+        _ => Value.ToString().ToUpperInvariant()
+    };
 }

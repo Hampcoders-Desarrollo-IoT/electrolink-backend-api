@@ -58,12 +58,12 @@ public class ServiceDesignQueryService : IServiceDesignQueryService
     
     public async Task<RequestEligibility> Handle(GetRequestEligibilityQuery query)
     {
-        var isActive = await _externalProfileService.IsHomeownerActiveAsync(query.HomeownerId.Value);
+        var isActive = await _externalProfileService.IsClientActiveAsync(query.Client);
 
         if (!isActive)
             return new RequestEligibility(false, null, null, false, "PROFILE_INCOMPLETE");
 
-        var eligibility = await _externalSubscriptionsService.GetRemainingRequestsAsync(query.HomeownerId.Value);
+        var eligibility = await _externalSubscriptionsService.GetRemainingRequestsAsync(query.Client.ToHomeownerId().Value);
 
         return new RequestEligibility(
             eligibility.canCreate,
@@ -140,7 +140,7 @@ private static string GetCategoryDisplayName(EServiceCategory category) => categ
     {
         var request = await _requestRepository.FindByIdAsync(query.RequestId);
 
-        if (request is null || request.HomeownerId != query.HomeownerId)
+        if (request is null || request.Client != query.Client)
             return null;
 
         return request;

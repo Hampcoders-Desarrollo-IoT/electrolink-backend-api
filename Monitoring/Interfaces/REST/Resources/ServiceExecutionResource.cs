@@ -4,7 +4,7 @@ public record ServiceExecutionResource(
     string ExecutionId,
     string AssignmentId,
     string TechnicianId,
-    string HomeownerId,
+    string OwnerId,
     string PropertyId,
     string Status,
     DateTime  ScheduledAt,

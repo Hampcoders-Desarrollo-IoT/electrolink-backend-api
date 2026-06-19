@@ -9,7 +9,7 @@ public record GetServiceAssignmentByIdQuery(AssignmentId AssignmentId);
 
 public record GetAssignmentsByTechnicianQuery(TechnicianId TechnicianId);
 
-public record GetAssignmentsByHomeownerQuery(HomeownerId HomeownerId);
+public record GetAssignmentsByClientQuery(ClientIdentity Client);
 
 public record GetAssignmentByRequestIdQuery(RequestId RequestId);
 

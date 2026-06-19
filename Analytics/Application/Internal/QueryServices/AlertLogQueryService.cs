@@ -16,7 +16,7 @@ public class AlertLogQueryService(
         string? filterStatus = null,
         DateTime? fromDate = null)
     {
-        return await alertLogRepository.FindByHomeownerIdAsync(HomeownerId.From(homeownerId));
+        return await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId));
     }
 
     public async Task<AlertLog?> GetAnomalyImpactSummaryAsync(
@@ -24,6 +24,6 @@ public class AlertLogQueryService(
         DateTime fromDate,
         DateTime toDate)
     {
-        return await alertLogRepository.FindByHomeownerIdAsync(HomeownerId.From(homeownerId));
+        return await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId));
     }
 }

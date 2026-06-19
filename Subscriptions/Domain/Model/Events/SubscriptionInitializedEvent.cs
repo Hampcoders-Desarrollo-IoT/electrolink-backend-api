@@ -11,6 +11,7 @@ namespace Hampcoders.Electrolink.API.Subscriptions.Domain.Model.Events;
 public record SubscriptionInitializedEvent(
     string SubscriptionId,
     string UserId,
+    string ProfileId,
     string BusinessRole,
     string PlanType,
     string StripeCustomerId,

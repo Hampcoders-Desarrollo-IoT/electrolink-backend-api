@@ -17,4 +17,5 @@ public record MyProfileResource(
     string? Country,
     string? PostalCode,
     TechnicianProfileResource? Technician,
-    HomeownerProfileResource? Homeowner);
+    HomeownerProfileResource? Homeowner,
+    CompanyProfileResource? Company);

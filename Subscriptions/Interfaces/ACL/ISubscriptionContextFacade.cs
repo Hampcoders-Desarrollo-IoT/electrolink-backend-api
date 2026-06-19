@@ -39,4 +39,9 @@ public interface ISubscriptionContextFacade
 
     /// <summary>Retorna el tipo de plan del técnico como string. Null si no tiene suscripción.</summary>
     Task<string?> GetTechnicianPlanTypeAsync(string technicianId);
+
+    /// <summary>
+    /// Records the service request ID for an IoT installation on the subscription.
+    /// </summary>
+    Task RecordInstallationServiceRequestAsync(string subscriptionId, string serviceRequestId);
 }

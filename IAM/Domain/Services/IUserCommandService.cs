@@ -48,4 +48,6 @@ public interface IUserCommandService
      * <returns>The new JWT token with refreshed claims.</returns>
      */
     Task<string> Handle(RefreshClaimsCommand command);
+    Task Handle(SuspendUserAccountCommand command);
+    Task Handle(ActivateUserAccountCommand command);
 }

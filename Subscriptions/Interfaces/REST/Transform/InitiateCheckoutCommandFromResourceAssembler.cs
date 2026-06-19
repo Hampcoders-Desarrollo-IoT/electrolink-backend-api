@@ -5,9 +5,9 @@ namespace Hampcoders.Electrolink.API.Subscriptions.Interfaces.REST.Transform;
 
 public static class InitiateCheckoutCommandFromResourceAssembler
 {
-    public static InitiateCheckoutCommand ToCommand(string userId, InitiateCheckoutResource resource)
+    public static InitiateCheckoutCommand ToCommand(string profileId, InitiateCheckoutResource resource)
         => new(
-            UserId: userId,
+            ProfileId: profileId,
             PlanType: resource.PlanType,
             BillingCycle: resource.BillingCycle,
             SuccessUrl: resource.SuccessUrl,

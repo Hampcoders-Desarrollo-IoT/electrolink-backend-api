@@ -5,5 +5,5 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Commands;
 
 public record SelectServiceRecipeCommand(
     RequestId RequestId,
-    HomeownerId HomeownerId,
+    ClientIdentity Client,
     EServiceCategory ServiceCategory);

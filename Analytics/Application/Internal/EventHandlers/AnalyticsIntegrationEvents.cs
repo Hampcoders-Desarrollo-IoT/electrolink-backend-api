@@ -3,7 +3,7 @@ using Hampcoders.Electrolink.API.Shared.Domain.Model.Events;
 namespace Hampcoders.Electrolink.API.Analytics.Application.Internal.EventHandlers;
 
 public record ReadingIngestedIntegrationEvent(
-    string HomeownerId,
+    string OwnerId,
     string DeviceId,
     string CircuitId,
     decimal KilowattHours,
@@ -16,7 +16,7 @@ public record ReadingIngestedIntegrationEvent(
 }
 
 public record AnomalyDetectedIntegrationEvent(
-    string HomeownerId,
+    string OwnerId,
     string AlertId,
     string DeviceId,
     string AnomalyType,
@@ -29,7 +29,7 @@ public record AnomalyDetectedIntegrationEvent(
 }
 
 public record AnomalyResolvedIntegrationEvent(
-    string HomeownerId,
+    string OwnerId,
     string AlertId,
     DateTime ResolutionTimestamp) : IIntegrationEvent
 {
@@ -38,7 +38,7 @@ public record AnomalyResolvedIntegrationEvent(
 }
 
 public record DeviceDisconnectedIntegrationEvent(
-    string HomeownerId,
+    string OwnerId,
     string DeviceId,
     DateTime DisconnectedAt) : IIntegrationEvent
 {
@@ -47,7 +47,7 @@ public record DeviceDisconnectedIntegrationEvent(
 }
 
 public record DeviceReconnectedIntegrationEvent(
-    string HomeownerId,
+    string OwnerId,
     string DeviceId,
     DateTime ReconnectedAt) : IIntegrationEvent
 {
@@ -56,7 +56,7 @@ public record DeviceReconnectedIntegrationEvent(
 }
 
 public record RelayCommandExecutedIntegrationEvent(
-    string HomeownerId,
+    string OwnerId,
     string DeviceId,
     string CircuitId,
     string CommandType,
@@ -68,7 +68,7 @@ public record RelayCommandExecutedIntegrationEvent(
 }
 
 public record ServiceCompletedIntegrationEvent(
-    string HomeownerId,
+    string OwnerId,
     string ServiceId,
     string ServiceType,
     DateTime CompletedAt,
@@ -93,7 +93,7 @@ public record TechnicianEvaluationSubmittedIntegrationEvent(
 }
 
 public record EnterpriseSubscriptionFullyActiveIntegrationEvent(
-    string HomeownerId,
+    string OwnerId,
     string SubscriptionId,
     string PropertyId,
     List<string> DeviceIds,
@@ -104,9 +104,8 @@ public record EnterpriseSubscriptionFullyActiveIntegrationEvent(
 }
 
 public record ConsumptionThresholdsUpdatedIntegrationEvent(
-    string HomeownerId,
-    decimal LowThreshold,
-    decimal HighThreshold,
+    string OwnerId,
+    Dictionary<string, decimal> Thresholds,
     DateTime UpdatedAt) : IIntegrationEvent
 {
     public Guid EventId { get; init; } = Guid.NewGuid();
@@ -114,7 +113,7 @@ public record ConsumptionThresholdsUpdatedIntegrationEvent(
 }
 
 public record ServiceSuggestionAcceptedIntegrationEvent(
-    string HomeownerId,
+    string OwnerId,
     string ServiceSuggestionId,
     DateTime AcceptedAt) : IIntegrationEvent
 {

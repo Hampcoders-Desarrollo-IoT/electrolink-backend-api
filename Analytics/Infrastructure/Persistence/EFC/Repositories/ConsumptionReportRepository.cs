@@ -11,10 +11,10 @@ namespace Hampcoders.Electrolink.API.Analytics.Infrastructure.Persistence.EFC.Re
 public class ConsumptionReportRepository(AppDbContext context)
     : BaseRepository<ConsumptionReport, ConsumptionReportId>(context), IConsumptionReportRepository
 {
-    public async Task<List<ConsumptionReport>> FindByHomeownerIdAsync(HomeownerId homeownerId)
+    public async Task<List<ConsumptionReport>> FindByOwnerAsync(ClientIdentity owner)
     {
         return await Context.Set<ConsumptionReport>()
-            .Where(r => r.RequestedByHomeownerId.Value == homeownerId.Value)
+            .Where(r => r.RequestedBy.ClientId == owner.ClientId && r.RequestedBy.ClientType == owner.ClientType)
             .ToListAsync();
     }
 }

@@ -7,6 +7,6 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Repositories;
 
 public interface IServiceRequestRepository : IBaseRepository<ServiceRequest, RequestId>
 {
-    Task<IEnumerable<ServiceRequest>> FindByHomeownerIdAsync(HomeownerId homeownerId);
+    Task<IEnumerable<ServiceRequest>> FindByClientAsync(ClientIdentity client);
     Task<IEnumerable<ServiceRequest>> FindPendingAssignmentAsync(int? page = null, int? pageSize = null);
 }

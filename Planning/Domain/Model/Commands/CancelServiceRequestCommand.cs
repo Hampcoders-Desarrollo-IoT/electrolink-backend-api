@@ -5,6 +5,6 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Model.Commands;
 
 public record CancelServiceRequestCommand(
     RequestId RequestId,
-    HomeownerId HomeownerId,
+    ClientIdentity Client,
     string Reason,
     string? Notes = null);

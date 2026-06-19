@@ -11,10 +11,10 @@ public class RelayCommandExecutedEventHandler(
     public async Task Handle(RelayCommandExecutedIntegrationEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("[Analytics BC] RelayCommandExecuted: homeowner={HomeownerId}, device={DeviceId}, circuit={CircuitId}",
-            notification.HomeownerId, notification.DeviceId, notification.CircuitId);
+            notification.OwnerId, notification.DeviceId, notification.CircuitId);
 
         await alertLogCommandService.RecordCircuitToggleAlertAsync(
-            notification.HomeownerId,
+            notification.OwnerId,
             notification.DeviceId,
             notification.CircuitId);
     }

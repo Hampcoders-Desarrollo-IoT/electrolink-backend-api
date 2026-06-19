@@ -24,7 +24,7 @@ public class PropertyPortfoliosController(
     [SwaggerResponse(StatusCodes.Status404NotFound, "Portfolio not found")]
     public async Task<IActionResult> GetPortfolio([FromRoute] string homeownerId)
     {
-        var query = new GetPortfolioByOwnerIdQuery(HomeownerId.From(homeownerId));
+        var query = new GetPortfolioByOwnerIdQuery(ClientIdentity.FromHomeowner(homeownerId));
         var portfolio = await queryService.Handle(query);
         if (portfolio is null)
             return NotFound(new { message = $"Portfolio for owner {homeownerId} not found." });

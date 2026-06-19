@@ -1,4 +1,5 @@
 
+using Hampcoders.Electrolink.API.Analytics.Application.Internal.EventHandlers;
 using Hampcoders.Electrolink.API.Planning.Domain.Model.Queries;
 using Hampcoders.Electrolink.API.Profiles.Domain.Model.Commands;
 using Hampcoders.Electrolink.API.Profiles.Domain.Model.Queries;
@@ -7,6 +8,7 @@ using Hampcoders.Electrolink.API.Profiles.Domain.Repositories;
 using Hampcoders.Electrolink.API.Profiles.Domain.Services;
 using Hampcoders.Electrolink.API.Profiles.Interfaces.ACL;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
+using MediatR;
 
 namespace Hampcoders.Electrolink.API.Profiles.Application.ACL;
 
@@ -14,7 +16,9 @@ namespace Hampcoders.Electrolink.API.Profiles.Application.ACL;
 /// Facade for the profiles context
 /// </summary>
 public class ProfilesContextFacade(
-    IProfileQueryService profileQueryService, IProfileRepository profileRepository
+    IProfileQueryService profileQueryService,
+    IProfileRepository profileRepository,
+    IMediator mediator
 ) : IProfilesContextFacade
 {
     public async Task<string?> GetTechnicianIdByUserIdAsync(string userId)
@@ -75,6 +79,11 @@ public class ProfilesContextFacade(
         return await profileRepository.IsHomeownerActiveAsync(HomeownerId.From(homeownerId));
     }
 
+    public async Task<bool> IsCompanyActiveAsync(string companyId)
+    {
+        return await profileRepository.IsCompanyActiveAsync(CompanyId.From(companyId));
+    }
+
     public async Task<IEnumerable<(string technicianId, string profileId, string fullName)>> GetTechniciansInAreaAsync(double latitude, double longitude)
         => await profileQueryService.Handle(new GetTechniciansInAreaQuery(latitude, longitude));
 
@@ -104,8 +113,25 @@ public class ProfilesContextFacade(
         return profile.Technician.Specialties.Select(s => s.ToString());
     }
 
-    public Task<(string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId)?> GetProfileClaimsAsync(string userId)
+    public Task<(string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId, string? SubscriptionTier)?> GetProfileClaimsAsync(string userId)
     {
         return profileQueryService.Handle(new GetProfileClaimsQuery(userId));
+    }
+
+    public async Task<string?> GetProfileIdByHomeownerIdAsync(string homeownerId)
+    {
+        var profile = await profileRepository.FindByHomeownerIdAsync(HomeownerId.From(homeownerId));
+        return profile?.ProfileId.Value;
+    }
+
+    public async Task SetConsumptionThresholdsAsync(string profileId, Dictionary<string, decimal> thresholds)
+    {
+        var profile = await profileRepository.FindByIdAsync(ProfileId.From(profileId));
+        if (profile is null)
+            throw new ArgumentException($"Profile {profileId} not found.");
+
+        var integrationEvent = new ConsumptionThresholdsUpdatedIntegrationEvent(
+            profile.UserId.Value, thresholds, DateTime.UtcNow);
+        await mediator.Publish(integrationEvent);
     }
 }

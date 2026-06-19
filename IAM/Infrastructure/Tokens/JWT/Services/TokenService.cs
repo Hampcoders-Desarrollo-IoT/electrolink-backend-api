@@ -32,7 +32,7 @@ public class TokenService(IOptions<TokenSettings> tokenSettings, ILogger<TokenSe
      */
     public string GenerateToken(
         User user,
-        (string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId)? profileClaims = null)
+        (string ProfileId, string ProfileStatus, string? BusinessRole, string? RoleSubjectId, string? SubscriptionTier)? profileClaims = null)
     {
         var secret = _tokenSettings.Secret;
         var key = Encoding.ASCII.GetBytes(secret);
@@ -49,6 +49,7 @@ public class TokenService(IOptions<TokenSettings> tokenSettings, ILogger<TokenSe
             claims.Add(new("profileStatus", profileClaims.Value.ProfileStatus));
             claims.Add(new("businessRole", profileClaims.Value.BusinessRole   ?? string.Empty));
             claims.Add(new("roleSubjectId", profileClaims.Value.RoleSubjectId  ?? string.Empty));
+            claims.Add(new("subscriptionTier", profileClaims.Value.SubscriptionTier ?? "FREE"));
         }
 
         var tokenDescriptor = new SecurityTokenDescriptor

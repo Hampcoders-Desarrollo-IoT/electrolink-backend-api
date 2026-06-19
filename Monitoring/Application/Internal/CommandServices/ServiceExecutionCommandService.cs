@@ -190,7 +190,7 @@ public class ServiceExecutionCommandService(
     {
         var execution = await GetOrThrowAsync(command.ExecutionId);
 
-        execution.ExtendWaitTime(command.HomeownerId, command.ExtendMinutes, command.RequestedAt);
+        execution.ExtendWaitTime(command.Owner, command.ExtendMinutes, command.RequestedAt);
 
         await unitOfWork.CompleteAsync();
         await PublishAndClearEventsAsync(execution);

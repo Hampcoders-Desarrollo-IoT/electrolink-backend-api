@@ -17,9 +17,12 @@ public class ConsumptionReportConfiguration : IEntityTypeConfiguration<Consumpti
             .HasConversion(id => id.Value, v => ConsumptionReportId.From(v))
             .HasColumnName("report_id");
 
-        builder.Property(r => r.RequestedByHomeownerId)
-            .HasConversion(id => id.Value, v => HomeownerId.From(v))
-            .HasColumnName("requested_by_homeowner_id");
+        builder.OwnsOne(r => r.RequestedBy, o =>
+        {
+            o.WithOwner().HasForeignKey("ReportId");
+            o.Property(c => c.ClientType).HasConversion<string>().HasColumnName("owner_type").HasMaxLength(20).IsRequired();
+            o.Property(c => c.ClientId).HasColumnName("owner_id").HasMaxLength(100).IsRequired();
+        });
 
         builder.Property(r => r.PropertyId)
             .HasConversion(id => id.Value, v => PropertyId.From(v))

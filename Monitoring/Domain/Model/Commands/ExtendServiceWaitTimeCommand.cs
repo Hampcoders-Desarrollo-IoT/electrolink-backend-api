@@ -8,7 +8,7 @@ namespace Hampcoders.Electrolink.API.Monitoring.Domain.Model.Commands;
 /// </summary>
 public record ExtendServiceWaitTimeCommand(
     ServiceExecutionId ExecutionId,
-    HomeownerId HomeownerId,
+    ClientIdentity Owner,
     int ExtendMinutes,
     DateTime RequestedAt
 );

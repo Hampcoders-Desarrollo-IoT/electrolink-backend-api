@@ -9,7 +9,7 @@ public static class ConsumptionDashboardResourceFromEntityAssembler
     {
         return new ConsumptionDashboardResource(
             view.Dashboard.DashboardId.Value,
-            view.Dashboard.HomeownerId.Value,
+            view.Dashboard.Owner.ClientId,
             view.Dashboard.PropertyId.Value,
             view.Dashboard.DeviceIds.Select(d => d.Value).ToList(),
             view.Dashboard.PlanTier.ToString(),

@@ -9,23 +9,23 @@ namespace Hampcoders.Electrolink.API.Assets.Infrastructure.Persistence.EFC.Repos
 
 public class PropertyRepository(AppDbContext context) : BaseRepository<Property, PropertyId>(context), IPropertyRepository
 {
-    public async Task<IEnumerable<Property>> FindByHomeownerIdAsync(HomeownerId homeownerId)
+    public async Task<IEnumerable<Property>> FindByOwnerAsync(ClientIdentity owner)
     {
         return await Context.Set<Property>()
-            .Where(p => p.OwnerId == homeownerId)
+            .Where(p => p.Owner == owner)
             .ToListAsync();
     }
     
-    public async Task<Property?> FindByIdAndOwnerIdAsync(PropertyId propertyId, HomeownerId ownerId)
+    public async Task<Property?> FindByIdAndOwnerAsync(PropertyId propertyId, ClientIdentity owner)
     {
         return await Context.Set<Property>()
-            .FirstOrDefaultAsync(p => p.Id == propertyId && p.OwnerId == ownerId);
+            .FirstOrDefaultAsync(p => p.Id == propertyId && p.Owner == owner);
     }
-    public async Task<IEnumerable<Property>> GetAllFilteredAsync(HomeownerId ownerId,
+    public async Task<IEnumerable<Property>> GetAllFilteredAsync(ClientIdentity owner,
         string? city,
         string? street)
     {
-        var query = Context.Set<Property>().Where(p => p.OwnerId == ownerId);
+        var query = Context.Set<Property>().Where(p => p.Owner == owner);
 
         if (!string.IsNullOrWhiteSpace(city))
         {
@@ -48,9 +48,9 @@ public class PropertyRepository(AppDbContext context) : BaseRepository<Property,
     }
 
     public async Task<(IEnumerable<Property> Items, int TotalCount)> GetAllFilteredPaginatedAsync(
-        HomeownerId ownerId, string? city, string? street, int page, int pageSize)
+        ClientIdentity owner, string? city, string? street, int page, int pageSize)
     {
-        var query = Context.Set<Property>().Where(p => p.OwnerId == ownerId);
+        var query = Context.Set<Property>().Where(p => p.Owner == owner);
 
         if (!string.IsNullOrWhiteSpace(city))
             query = query.Where(p => p.Address.City.Contains(city));
