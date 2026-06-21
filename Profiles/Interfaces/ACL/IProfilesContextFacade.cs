@@ -84,6 +84,11 @@ public interface IProfilesContextFacade
     Task<string?> GetProfileIdByHomeownerIdAsync(string homeownerId);
 
     /// <summary>
+    /// Resolves the ProfileId from a CompanyId (comp-xxx).
+    /// </summary>
+    Task<string?> GetProfileIdByCompanyIdAsync(string companyId);
+
+    /// <summary>
     /// Sets consumption thresholds for a company profile.
     /// </summary>
     Task SetConsumptionThresholdsAsync(string profileId, Dictionary<string, decimal> thresholds);

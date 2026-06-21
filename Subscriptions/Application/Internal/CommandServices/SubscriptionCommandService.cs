@@ -340,7 +340,9 @@ public class SubscriptionCommandService(
 
     private async Task PublishAndClearAsync(Subscription subscription)
     {
-        foreach (var domainEvent in subscription.DomainEvents)
+        var events = subscription.DomainEvents.ToArray();
+        subscription.ClearDomainEvents();
+        foreach (var domainEvent in events)
             await mediator.Publish(domainEvent);
 
         subscription.ClearDomainEvents();

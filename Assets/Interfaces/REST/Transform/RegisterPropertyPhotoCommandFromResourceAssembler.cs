@@ -7,12 +7,12 @@ namespace Hampcoders.Electrolink.API.Assets.Interfaces.REST.Transform;
 public static class RegisterPropertyPhotoCommandFromResourceAssembler
 {
     public static RegisterPropertyPhotoCommand ToCommand(
-        string homeownerId,
+        string ownerId,
         string propertyId,
         RegisterPropertyPhotoResource resource)
     {
         return new RegisterPropertyPhotoCommand(
-            ClientIdentity.FromHomeowner(homeownerId),
+            ClientIdentity.FromOwnerId(ownerId),
             PropertyId.From(propertyId),
             resource.ProviderId,
             resource.PublicUrl);

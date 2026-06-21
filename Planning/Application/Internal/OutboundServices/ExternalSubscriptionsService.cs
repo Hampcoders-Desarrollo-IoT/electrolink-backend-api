@@ -8,30 +8,30 @@ public class ExternalSubscriptionsService(ISubscriptionContextFacade subscriptio
 {
     /// <summary>
     /// </summary>
-    public async Task<bool> CanCreateRequestAsync(string homeownerId)
+    public async Task<bool> CanCreateRequestAsync(string clientId)
     {
-        var eligibility = await subscriptionContextFacade.GetRequestEligibilityAsync(homeownerId);
+        var eligibility = await subscriptionContextFacade.GetRequestEligibilityAsync(clientId);
         return eligibility.canCreate;
     }
 
     /// <summary>
     /// </summary>
-    public async Task<string> GetPlanTypeAsync(string homeownerId)
+    public async Task<string> GetPlanTypeAsync(string clientId)
     {
-        var eligibility = await subscriptionContextFacade.GetRequestEligibilityAsync(homeownerId);
+        var eligibility = await subscriptionContextFacade.GetRequestEligibilityAsync(clientId);
         return eligibility.planType;
     }
 
     /// <summary>
     /// </summary>
-    public async Task<(bool canCreate, string planType, int? remainingRequests, bool canMarkAsPriority)> GetRemainingRequestsAsync(string homeownerId) 
-        => await subscriptionContextFacade.GetRequestEligibilityAsync(homeownerId);
+    public async Task<(bool canCreate, string planType, int? remainingRequests, bool canMarkAsPriority)> GetRemainingRequestsAsync(string clientId) 
+        => await subscriptionContextFacade.GetRequestEligibilityAsync(clientId);
 
     /// <summary>
     /// </summary>
-    public async Task<bool> CanMarkAsPriorityAsync(string homeownerId)
+    public async Task<bool> CanMarkAsPriorityAsync(string clientId)
     {
-        var eligibility = await subscriptionContextFacade.GetRequestEligibilityAsync(homeownerId);
+        var eligibility = await subscriptionContextFacade.GetRequestEligibilityAsync(clientId);
         return eligibility.canMarkAsPriority;
     }
 }

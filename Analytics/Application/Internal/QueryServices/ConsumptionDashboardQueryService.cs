@@ -15,7 +15,7 @@ public class ConsumptionDashboardQueryService(
 {
     public async Task<DashboardView?> GetDashboardViewAsync(string homeownerId)
     {
-        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId));
+        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId));
         if (dashboard == null) return null;
 
         var timeSeries = await projectionService.GetTimeSeriesAsync(dashboard.DashboardId.Value);
@@ -26,7 +26,7 @@ public class ConsumptionDashboardQueryService(
 
     public async Task<DashboardView?> GetCostProjectionAsync(string homeownerId)
     {
-        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId));
+        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId));
         if (dashboard == null) return null;
 
         var timeSeries = await projectionService.GetTimeSeriesAsync(dashboard.DashboardId.Value);
@@ -36,7 +36,7 @@ public class ConsumptionDashboardQueryService(
 
     public async Task<DashboardView?> GetRealTimeCircuitMonitorAsync(string homeownerId)
     {
-        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId));
+        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId));
         if (dashboard == null) return null;
 
         var circuitSummaries = await projectionService.GetCircuitSummariesAsync(dashboard.DashboardId.Value);

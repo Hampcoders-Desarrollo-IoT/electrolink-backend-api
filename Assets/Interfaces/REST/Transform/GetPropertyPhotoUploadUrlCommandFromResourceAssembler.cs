@@ -5,10 +5,10 @@ namespace Hampcoders.Electrolink.API.Assets.Interfaces.REST.Transform;
 
 public static class GetPropertyPhotoUploadUrlCommandFromResourceAssembler
 {
-    public static GetPropertyPhotoUploadUrlCommand ToCommand(string homeownerId, string propertyId)
+    public static GetPropertyPhotoUploadUrlCommand ToCommand(string ownerId, string propertyId)
     {
         return new GetPropertyPhotoUploadUrlCommand(
-            ClientIdentity.FromHomeowner(homeownerId),
+            ClientIdentity.FromOwnerId(ownerId),
             PropertyId.From(propertyId));
     }
 }

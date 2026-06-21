@@ -6,9 +6,9 @@ namespace Hampcoders.Electrolink.API.Assets.Interfaces.REST.Transform;
 
 public static class AddPropertyToPortfolioCommandFromResourceAssembler
 {
-    public static AddPropertyToPortfolioCommand ToCommandFromResource(AddPropertyToPortfolioResource resource, string homeownerId)
+    public static AddPropertyToPortfolioCommand ToCommandFromResource(AddPropertyToPortfolioResource resource, string ownerId)
         => new AddPropertyToPortfolioCommand(
-            ClientIdentity.FromHomeowner(homeownerId),
+            ClientIdentity.FromOwnerId(ownerId),
             PropertyId.From(resource.PropertyId),
             resource.Nickname,
             resource.IsPrimary,

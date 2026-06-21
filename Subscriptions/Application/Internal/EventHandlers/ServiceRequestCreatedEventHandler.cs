@@ -13,7 +13,12 @@ public class ServiceRequestCreatedEventHandler(
 {
     public async Task Handle(ServiceRequestCreatedEvent notification, CancellationToken cancellationToken)
     {
-        var profileId = await profilesFacade.GetProfileIdByHomeownerIdAsync(notification.Client.ClientId);
+        var clientId = notification.Client.ClientId;
+        var profileId = clientId.StartsWith("ho-")
+            ? await profilesFacade.GetProfileIdByHomeownerIdAsync(clientId)
+            : clientId.StartsWith("comp-")
+                ? await profilesFacade.GetProfileIdByCompanyIdAsync(clientId)
+                : null;
         if (string.IsNullOrWhiteSpace(profileId))
             return;
 

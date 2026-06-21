@@ -8,8 +8,7 @@ public interface IPropertyCommandService
 {
     Task<Property?> Handle(CreatePropertyCommand command);
     Task<Property?> Handle(UpdatePropertyCommand command);
-    Task<Property?> Handle(UpdatePropertyAddressCommand command);
-    Task<Property?> Handle(UpdatePropertyGeolocationCommand command);
+    Task<Property?> Handle(UpdatePropertyLocationCommand command);
     Task<Property?> Handle(DeactivatePropertyCommand command);
     Task<Property?> Handle(ArchivePropertyCommand command);
     Task<Property?> Handle(ActivatePropertyCommand command);

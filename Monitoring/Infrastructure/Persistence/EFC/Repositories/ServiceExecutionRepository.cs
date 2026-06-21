@@ -20,7 +20,7 @@ public class ServiceExecutionRepository(AppDbContext context)
 
     public async Task<IEnumerable<ServiceExecution>> FindByOwnerAsync(ClientIdentity owner)
         => await Context.Set<ServiceExecution>()
-            .Where(se => se.Owner == owner)
+            .Where(se => se.Owner.ClientType == owner.ClientType && se.Owner.ClientId == owner.ClientId)
             .Include(se => se.WorkPhotos)
             .Include(se => se.ComponentSubstitutions)
             .ToListAsync();
@@ -43,7 +43,7 @@ public class ServiceExecutionRepository(AppDbContext context)
 
     public async Task<ServiceExecution?> FindActiveByOwnerAsync(ClientIdentity owner)
         => await Context.Set<ServiceExecution>()
-            .Where(se => se.Owner == owner
+            .Where(se => se.Owner.ClientType == owner.ClientType && se.Owner.ClientId == owner.ClientId
                       && (se.Status == EExecutionStatus.Notified
                        || se.Status == EExecutionStatus.EnRoute
                        || se.Status == EExecutionStatus.Arrived

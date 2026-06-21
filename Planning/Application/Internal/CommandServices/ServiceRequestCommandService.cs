@@ -29,7 +29,7 @@ public class ServiceRequestCommandService(
     {
         await externalProfilesService.EnsureClientIsActiveAsync(command.Client);
 
-        var eligibility = await subscriptionFacade.GetRequestEligibilityAsync(command.Client.ToHomeownerId().Value);
+        var eligibility = await subscriptionFacade.GetRequestEligibilityAsync(command.Client.ClientId);
 
         if (!eligibility.canCreate)
             throw new RequestLimitReachedException(command.Client);
@@ -52,7 +52,7 @@ public class ServiceRequestCommandService(
         EnsureOwnership(request.Client, command.Client);
 
         var geolocation = await assetsFacade.GetPropertyGeolocationAsync(
-            command.PropertyId.Value, command.Client.ToHomeownerId().Value) ;
+            command.PropertyId.Value, command.Client.ClientId);
 
         if (geolocation is null)
             throw new InvalidOperationException("Property geolocation data unavailable.");
@@ -154,7 +154,7 @@ public class ServiceRequestCommandService(
 
         var currency = Enum.Parse<ECurrency>(command.AmountCurrency, ignoreCase: true);
         var dates = command.PreferredDates
-            .Select(d => DateOnly.ParseExact(d, "dd/MM/yyyy", CultureInfo.InvariantCulture))
+            .Select(d => DateOnly.Parse(d, CultureInfo.InvariantCulture))
             .ToList();
 
         var preferences = RequestPreferences.Create(
@@ -178,7 +178,7 @@ public class ServiceRequestCommandService(
 
         EnsureOwnership(request.Client, command.Client);
 
-        var eligibility = await subscriptionFacade.GetRequestEligibilityAsync(command.Client.ToHomeownerId().Value);
+        var eligibility = await subscriptionFacade.GetRequestEligibilityAsync(command.Client.ClientId);
         if (!eligibility.canCreate)
             throw new RequestLimitReachedException(command.Client);
 

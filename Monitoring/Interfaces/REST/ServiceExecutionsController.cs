@@ -68,7 +68,7 @@ public class ServiceExecutionsController(
     [ProducesResponseType(typeof(IEnumerable<ServiceExecutionResource>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ServiceExecutionResource>>> GetHistoryByHomeowner(string homeownerId)
     {
-        var executions = await queryService.Handle(new GetServiceHistoryByClientQuery(ClientIdentity.FromHomeowner(homeownerId)));
+        var executions = await queryService.Handle(new GetServiceHistoryByClientQuery(ClientIdentity.FromOwnerId(homeownerId)));
         return Ok(executions.Select(ServiceExecutionResourceFromEntityAssembler.ToResourceFromEntity));
     }
 
@@ -85,7 +85,7 @@ public class ServiceExecutionsController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceExecutionResource>> GetActiveByHomeowner(string homeownerId)
     {
-        var execution = await queryService.Handle(new GetActiveServiceByClientQuery(ClientIdentity.FromHomeowner(homeownerId)));
+        var execution = await queryService.Handle(new GetActiveServiceByClientQuery(ClientIdentity.FromOwnerId(homeownerId)));
         if (execution is null) return NotFound(new { message = "No active service found for this homeowner." });
         return Ok(ServiceExecutionResourceFromEntityAssembler.ToResourceFromEntity(execution));
     }

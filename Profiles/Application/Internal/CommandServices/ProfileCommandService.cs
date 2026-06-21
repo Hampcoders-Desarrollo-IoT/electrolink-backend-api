@@ -420,9 +420,10 @@ public class ProfileCommandService(
 
   private async Task PublishAndClearEventsAsync(Profile profile)
   {
-      foreach (var domainEvent in profile.DomainEvents)
-          await mediator.Publish(domainEvent, CancellationToken.None);
+      var events = profile.DomainEvents.ToArray();
       profile.ClearDomainEvents();
+      foreach (var domainEvent in events)
+          await mediator.Publish(domainEvent, CancellationToken.None);
   }
   
   private static void EnsureOwnership(Profile profile, string userId)

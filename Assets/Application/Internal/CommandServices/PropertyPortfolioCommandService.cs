@@ -90,8 +90,9 @@ public class PropertyPortfolioCommandService(
 
     private async Task PublishAndClearEventsAsync(PropertyPortfolio portfolio)
     {
-        foreach (var domainEvent in portfolio.DomainEvents)
-            await mediator.Publish(domainEvent, CancellationToken.None);
+        var events = portfolio.DomainEvents.ToArray();
         portfolio.ClearDomainEvents();
+        foreach (var domainEvent in events)
+            await mediator.Publish(domainEvent, CancellationToken.None);
     }
 }

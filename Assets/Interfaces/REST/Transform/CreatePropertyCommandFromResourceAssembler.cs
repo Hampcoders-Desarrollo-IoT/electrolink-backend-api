@@ -7,7 +7,7 @@ namespace Hampcoders.Electrolink.API.Assets.Interfaces.REST.Transform;
 
 public static class CreatePropertyCommandFromResourceAssembler
 {
-    public static CreatePropertyCommand ToCommandFromResource(CreatePropertyResource resource, string homeownerId)
+    public static CreatePropertyCommand ToCommandFromResource(CreatePropertyResource resource, string ownerId)
     {
         var address = Address.Create(
             resource.Address.Street, 
@@ -24,6 +24,6 @@ public static class CreatePropertyCommandFromResourceAssembler
             ? parsed
             : EPropertyType.Residential;
 
-        return new CreatePropertyCommand(ClientIdentity.FromHomeowner(homeownerId), address, geolocation, propertyType);
+        return new CreatePropertyCommand(ClientIdentity.FromOwnerId(ownerId), address, geolocation, propertyType);
     }
 }

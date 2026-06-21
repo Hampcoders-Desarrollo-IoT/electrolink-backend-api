@@ -12,7 +12,7 @@ public static class ExtendServiceWaitTimeCommandFromResourceAssembler
     {
         return new ExtendServiceWaitTimeCommand(
             ServiceExecutionId.From(executionId),
-            ClientIdentity.FromHomeowner(ownerId),
+            ClientIdentity.FromOwnerId(ownerId),
             resource.ExtendMinutes,
             System.DateTime.UtcNow
         );

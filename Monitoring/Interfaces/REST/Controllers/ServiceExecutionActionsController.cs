@@ -182,9 +182,9 @@ public class ServiceExecutionActionsController(
         {
             var executionId = RouteData.Values["executionId"]?.ToString()
                 ?? throw new ArgumentException("executionId is required in the route.");
-            var homeownerId = User.GetHomeOwnerId();
+            var ownerId = User.GetRoleSubjectId();
             var command = ExtendServiceWaitTimeCommandFromResourceAssembler.ToCommandFromResource(
-                executionId, homeownerId, resource);
+                executionId, ownerId, resource);
 
             var execution = await commandService.Handle(command);
             return Ok(ServiceExecutionResourceFromEntityAssembler.ToResourceFromEntity(execution));
@@ -202,9 +202,9 @@ public class ServiceExecutionActionsController(
         {
             var executionId = RouteData.Values["executionId"]?.ToString()
                 ?? throw new ArgumentException("executionId is required in the route.");
-            var homeownerId = User.GetHomeOwnerId();
+            var ownerId = User.GetRoleSubjectId();
             var command = SubmitClientReviewCommandFromResourceAssembler.ToCommandFromResource(
-                executionId, homeownerId, resource);
+                executionId, ownerId, resource);
 
             await commandService.Handle(command);
             return NoContent();

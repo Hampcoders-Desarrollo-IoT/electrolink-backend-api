@@ -5,9 +5,9 @@ namespace Hampcoders.Electrolink.API.Assets.Interfaces.REST.Transform;
 
 public static class RemovePropertyFromPortfolioCommandFromResourceAssembler
 {
-    public static RemovePropertyFromPortfolioCommand ToCommandFromResource(string homeownerId, string propertyId, string reason)
+    public static RemovePropertyFromPortfolioCommand ToCommandFromResource(string ownerId, string propertyId, string reason)
         => new RemovePropertyFromPortfolioCommand(
-            ClientIdentity.FromHomeowner(homeownerId),
+            ClientIdentity.FromOwnerId(ownerId),
             PropertyId.From(propertyId),
             reason);
 }

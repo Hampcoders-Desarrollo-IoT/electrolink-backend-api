@@ -96,28 +96,17 @@ public class PropertyCommandService(
         return property;
     }
 
-    public async Task<Property?> Handle(UpdatePropertyAddressCommand command)
+    public async Task<Property?> Handle(UpdatePropertyLocationCommand command)
     {
         var property = await propertyRepository.FindByIdAsync(command.PropertyId);
         if (property is null) throw new AssetNotFoundException("Property", command.PropertyId.Value);
 
-        property.UpdateAddress(command.NewAddress);
-        await unitOfWork.CompleteAsync();
-        
-        foreach (var domainEvent in property.DomainEvents)
-        {
-            await mediator.Publish(domainEvent, CancellationToken.None);
-        }
-        property.ClearDomainEvents();
-        return property;
-    }
+        if (command.Address is not null)
+            property.UpdateAddress(command.Address);
 
-    public async Task<Property?> Handle(UpdatePropertyGeolocationCommand command)
-    {
-        var property = await propertyRepository.FindByIdAsync(command.PropertyId);
-        if (property is null) throw new AssetNotFoundException("Property", command.PropertyId.Value);
+        if (command.Geolocation is not null)
+            property.UpdateGeolocation(command.Geolocation);
 
-        property.UpdateGeolocation(command.NewGeolocation);
         await unitOfWork.CompleteAsync();
 
         foreach (var domainEvent in property.DomainEvents)

@@ -14,13 +14,13 @@ public class AnalyticsContextFacade(
 {
     public async Task<bool> HasActiveAlertsAsync(        string homeownerId)
     {
-        var alertLog = await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId));
+        var alertLog = await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId));
         return alertLog?.Entries.Any(e => e.Status == Domain.Model.Enums.AlertStatus.Active) ?? false;
     }
 
     public async Task<decimal> GetCurrentPeriodConsumptionAsync(string homeownerId)
     {
-        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId));
+        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId));
         if (dashboard == null) return 0;
 
         var timeSeries = await projectionService.GetTimeSeriesAsync(dashboard.DashboardId.Value);
@@ -38,7 +38,7 @@ public class AnalyticsContextFacade(
 
     public async Task<bool> HasReportsAvailableAsync(string homeownerId)
     {
-        var reports = await reportRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId));
+        var reports = await reportRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId));
         return reports.Count > 0;
     }
 }

@@ -12,14 +12,36 @@ public class SubscriptionContextFacade(
     IProfilesContextFacade profilesContextFacade)
     : ISubscriptionContextFacade
 {
-    public async Task<bool> CanCreateRequestAsync(string homeownerId)
-        => (await subscriptionQueryService.Handle(new GetRequestEligibilityQuery(homeownerId))).CanRequest;
+    private async Task<string?> ResolveProfileIdAsync(string clientId)
+    {
+        if (string.IsNullOrWhiteSpace(clientId)) return null;
+        if (clientId.StartsWith("ho-"))
+            return await profilesContextFacade.GetProfileIdByHomeownerIdAsync(clientId);
+        if (clientId.StartsWith("comp-"))
+            return await profilesContextFacade.GetProfileIdByCompanyIdAsync(clientId);
+        return null;
+    }
 
-    public async Task<bool> CanMarkAsPriorityAsync(string homeownerId)
-        => (await subscriptionQueryService.Handle(new GetRequestEligibilityQuery(homeownerId))).IsPriorityAllowed;
+    public async Task<bool> CanCreateRequestAsync(string clientId)
+    {
+        var profileId = await ResolveProfileIdAsync(clientId);
+        if (profileId is null) return false;
+        return (await subscriptionQueryService.Handle(new GetRequestEligibilityQuery(profileId))).CanRequest;
+    }
 
-    public async Task<int?> GetRemainingRequestsAsync(string homeownerId)
-        => (await subscriptionQueryService.Handle(new GetRequestEligibilityQuery(homeownerId))).RemainingRequests;
+    public async Task<bool> CanMarkAsPriorityAsync(string clientId)
+    {
+        var profileId = await ResolveProfileIdAsync(clientId);
+        if (profileId is null) return false;
+        return (await subscriptionQueryService.Handle(new GetRequestEligibilityQuery(profileId))).IsPriorityAllowed;
+    }
+
+    public async Task<int?> GetRemainingRequestsAsync(string clientId)
+    {
+        var profileId = await ResolveProfileIdAsync(clientId);
+        if (profileId is null) return null;
+        return (await subscriptionQueryService.Handle(new GetRequestEligibilityQuery(profileId))).RemainingRequests;
+    }
 
     public async Task<bool> IsTechnicianPremiumAsync(string technicianId)
     {
@@ -35,9 +57,13 @@ public class SubscriptionContextFacade(
     }
 
     public async Task<(bool canCreate, string planType, int? remainingRequests, bool canMarkAsPriority)>
-        GetRequestEligibilityAsync(string homeownerId)
+        GetRequestEligibilityAsync(string clientId)
     {
-        var eligibility = await subscriptionQueryService.Handle(new GetRequestEligibilityQuery(homeownerId));
+        var profileId = await ResolveProfileIdAsync(clientId);
+        if (profileId is null)
+            return (false, "UNKNOWN", null, false);
+
+        var eligibility = await subscriptionQueryService.Handle(new GetRequestEligibilityQuery(profileId));
         return (
             eligibility.CanRequest,
             eligibility.PlanType,
@@ -45,14 +71,14 @@ public class SubscriptionContextFacade(
             eligibility.IsPriorityAllowed);
     }
 
-    public async Task<bool> IncrementMonthlyRequestUsageAsync(string homeownerId)
+    public async Task<bool> IncrementMonthlyRequestUsageAsync(string clientId)
     {
-        if (string.IsNullOrWhiteSpace(homeownerId))
+        if (string.IsNullOrWhiteSpace(clientId))
             return false;
 
         try
         {
-            var profileId = await profilesContextFacade.GetProfileIdByHomeownerIdAsync(homeownerId);
+            var profileId = await ResolveProfileIdAsync(clientId);
             if (string.IsNullOrWhiteSpace(profileId))
                 return false;
 

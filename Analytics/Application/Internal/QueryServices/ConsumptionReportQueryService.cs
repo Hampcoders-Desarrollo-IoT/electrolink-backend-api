@@ -11,6 +11,6 @@ public class ConsumptionReportQueryService(
 {
     public async Task<List<ConsumptionReport>> GetReportsByHomeownerAsync(string homeownerId)
     {
-        return await reportRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId));
+        return await reportRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId));
     }
 }

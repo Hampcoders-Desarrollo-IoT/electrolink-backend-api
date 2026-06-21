@@ -65,8 +65,12 @@ public class ServiceCatalogController(
             var command = CreateServiceRecipeCommandFromResourceAssembler
                 .ToCommand(resource, catalog.CatalogId.Value, technicianId);
 
-            await commandService.Handle(command);
-            return StatusCode(StatusCodes.Status201Created);
+            var recipe = await commandService.Handle(command);
+            if (recipe is null) return BadRequest();
+            return CreatedAtAction(
+                nameof(GetRecipeDetails),
+                new { technicianId, recipeId = recipe.Id.Value },
+                new { recipeId = recipe.Id.Value });
         }
         catch (DuplicateRecipeNameException ex) { return Conflict(new { message = ex.Message }); }
         catch (InvalidPricingException ex)      { return BadRequest(new { message = ex.Message }); }

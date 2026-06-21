@@ -3,4 +3,7 @@ using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 
 namespace Hampcoders.Electrolink.API.Assets.Domain.Model.Commands;
 
-public record UpdatePropertyAddressCommand(PropertyId PropertyId, Address NewAddress);
+public record UpdatePropertyLocationCommand(
+    PropertyId PropertyId,
+    Address? Address,
+    Geolocation? Geolocation);

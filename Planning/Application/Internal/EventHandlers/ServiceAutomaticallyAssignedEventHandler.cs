@@ -37,7 +37,7 @@ public class ServiceAutomaticallyAssignedEventHandler(
                 @event.AssignmentId.Value,
                 @event.RequestId.Value,
                 @event.TechnicianId.Value,
-                request.HomeownerId.Value,
+                request.Client.ClientId,
                 request.PropertyId.Value,
                 @event.RecipeSnapshot,
                 @event.ScheduledAt,

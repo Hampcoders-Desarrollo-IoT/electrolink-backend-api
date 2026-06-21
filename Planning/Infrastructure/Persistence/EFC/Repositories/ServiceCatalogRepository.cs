@@ -49,23 +49,25 @@ public class ServiceCatalogRepository(AppDbContext context)  : BaseRepository<Se
     public async Task<Dictionary<TechnicianId, ServiceRecipe>> FindActiveRecipesByCategoryAndTechnicianIdsAsync(
         EServiceCategory serviceCategory, IEnumerable<TechnicianId> technicianIds)
     {
-        var ids = technicianIds.Select(id => id.Value).ToList();
+        var ids = technicianIds.ToList();
         var recipes = await Context.ServiceCatalogs
-            .Where(c => ids.Contains(c.TechnicianId.Value) && c.Status == ECatalogStatus.Active)
+            .Where(c => ids.Contains(c.TechnicianId) && c.Status == ECatalogStatus.Active)
             .SelectMany(c => c.Recipes)
             .Where(r => r.ServiceCategory == serviceCategory && r.IsActive)
             .ToListAsync();
 
-        return recipes.ToDictionary(r => r.TechnicianId);
+        return recipes
+            .GroupBy(r => r.TechnicianId)
+            .ToDictionary(g => g.Key, g => g.First());
     }
 
     public async Task<Dictionary<TechnicianId, ServiceCatalog>> FindCatalogsByTechnicianIdsAsync(
         IEnumerable<TechnicianId> technicianIds)
     {
-        var ids = technicianIds.Select(id => id.Value).ToList();
+        var ids = technicianIds.ToList();
         var catalogs = await Context.Set<ServiceCatalog>()
             .Include(c => c.Recipes)
-            .Where(c => ids.Contains(c.TechnicianId.Value))
+            .Where(c => ids.Contains(c.TechnicianId))
             .ToListAsync();
 
         return catalogs.ToDictionary(c => c.TechnicianId, c => c);

@@ -23,14 +23,14 @@ public class ConsumptionDashboardCommandService(
         List<string> deviceIds,
         string planTier)
     {
-        var existing = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId));
+        var existing = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId));
         if (existing != null)
             return;
 
         var plan = Enum.Parse<PlanTier>(planTier, ignoreCase: true);
 
         var dashboard = ConsumptionDashboard.Initialize(
-            ClientIdentity.FromHomeowner(homeownerId),
+            ClientIdentity.FromOwnerId(homeownerId),
             PropertyId.From(propertyId),
             deviceIds.Select(DeviceId.From).ToList(),
             plan);
@@ -54,7 +54,7 @@ public class ConsumptionDashboardCommandService(
         decimal current,
         DateTime readingTimestamp)
     {
-        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId))
+        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId))
             ?? throw new InvalidOperationException($"No dashboard found for homeowner '{homeownerId}'.");
 
         var (normalizedTs, granularity) = dashboard.ResolveReadingTimestamp(readingTimestamp);
@@ -95,7 +95,7 @@ public class ConsumptionDashboardCommandService(
     {
         var plan = Enum.Parse<PlanTier>(newPlanTier, ignoreCase: true);
 
-        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId))
+        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId))
             ?? throw new InvalidOperationException($"No dashboard found for homeowner '{homeownerId}'.");
 
         dashboard.UpgradeTier(plan);
@@ -109,7 +109,7 @@ public class ConsumptionDashboardCommandService(
 
     public async Task GenerateCostProjectionAsync(string homeownerId, decimal electricityRatePerKWh)
     {
-        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId))
+        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId))
             ?? throw new InvalidOperationException($"No dashboard found for homeowner '{homeownerId}'.");
 
         var now = DateTime.UtcNow;
@@ -129,7 +129,7 @@ public class ConsumptionDashboardCommandService(
         string homeownerId,
         Dictionary<string, decimal> thresholds)
     {
-        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId))
+        var dashboard = await dashboardRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId))
             ?? throw new InvalidOperationException($"No dashboard found for homeowner '{homeownerId}'.");
 
         dashboard.UpdateConsumptionThresholds(thresholds);

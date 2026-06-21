@@ -3,6 +3,7 @@ using Hampcoders.Electrolink.API.Assets.Domain.Model.Queries;
 using Hampcoders.Electrolink.API.Assets.Domain.Services;
 using Hampcoders.Electrolink.API.Assets.Interfaces.REST.Resources;
 using Hampcoders.Electrolink.API.Assets.Interfaces.REST.Transform;
+using Hampcoders.Electrolink.API.Shared.Domain.Model.Exceptions;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -10,7 +11,8 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Hampcoders.Electrolink.API.Assets.Interfaces.REST;
 
 [ApiController]
-[Route("api/v1/homeowners/{homeownerId}/[controller]")]
+[Route("api/v1/homeowners/{ownerId}/[controller]")]
+[Route("api/v1/companies/{ownerId}/[controller]")]
 [Produces(MediaTypeNames.Application.Json)]
 [SwaggerTag("Property Portfolio Endpoints")]
 public class PropertyPortfoliosController(
@@ -22,12 +24,12 @@ public class PropertyPortfoliosController(
     [SwaggerOperation(Summary = "Get portfolio by owner ID", OperationId = "GetPortfolioByOwnerId")]
     [SwaggerResponse(StatusCodes.Status200OK, "Portfolio found", typeof(PropertyPortfolioResource))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Portfolio not found")]
-    public async Task<IActionResult> GetPortfolio([FromRoute] string homeownerId)
+    public async Task<IActionResult> GetPortfolio([FromRoute] string ownerId)
     {
-        var query = new GetPortfolioByOwnerIdQuery(ClientIdentity.FromHomeowner(homeownerId));
+        var query = new GetPortfolioByOwnerIdQuery(CreateIdentity(ownerId));
         var portfolio = await queryService.Handle(query);
         if (portfolio is null)
-            return NotFound(new { message = $"Portfolio for owner {homeownerId} not found." });
+            return NotFound(new { message = $"Portfolio for owner {ownerId} not found." });
 
         return Ok(PropertyPortfolioResourceFromEntityAssembler.ToResourceFromEntity(portfolio));
     }
@@ -39,12 +41,12 @@ public class PropertyPortfoliosController(
     [SwaggerResponse(StatusCodes.Status409Conflict, "Property already in portfolio or nickname in use")]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Portfolio or property not found")]
     public async Task<IActionResult> AddPropertyToPortfolio(
-        [FromRoute] string homeownerId,
+        [FromRoute] string ownerId,
         [FromBody] AddPropertyToPortfolioResource resource)
     {
         try
         {
-            var command = AddPropertyToPortfolioCommandFromResourceAssembler.ToCommandFromResource(resource, homeownerId);
+            var command = AddPropertyToPortfolioCommandFromResourceAssembler.ToCommandFromResource(resource, ownerId);
             var portfolio = await commandService.Handle(command);
             if (portfolio is null) return BadRequest();
             return Ok(PropertyPortfolioResourceFromEntityAssembler.ToResourceFromEntity(portfolio));
@@ -69,13 +71,13 @@ public class PropertyPortfoliosController(
     [SwaggerResponse(StatusCodes.Status204NoContent, "Property removed from portfolio")]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Portfolio or property not found")]
     public async Task<IActionResult> RemovePropertyFromPortfolio(
-        [FromRoute] string homeownerId,
+        [FromRoute] string ownerId,
         [FromRoute] string propertyId,
         [FromQuery] string reason)
     {
         try
         {
-            var command = RemovePropertyFromPortfolioCommandFromResourceAssembler.ToCommandFromResource(homeownerId, propertyId, reason);
+            var command = RemovePropertyFromPortfolioCommandFromResourceAssembler.ToCommandFromResource(ownerId, propertyId, reason);
             var result = await commandService.Handle(command);
             return result ? NoContent() : NotFound();
         }
@@ -84,4 +86,11 @@ public class PropertyPortfoliosController(
             return NotFound(new { message = ex.Message });
         }
     }
+
+    private static ClientIdentity CreateIdentity(string ownerId)
+        => ownerId.StartsWith("ho-")
+            ? ClientIdentity.FromHomeowner(ownerId)
+            : ownerId.StartsWith("comp-")
+                ? ClientIdentity.FromCompany(ownerId)
+                : throw new InvalidIdException("OwnerId", ownerId);
 }

@@ -124,6 +124,12 @@ public class ProfilesContextFacade(
         return profile?.ProfileId.Value;
     }
 
+    public async Task<string?> GetProfileIdByCompanyIdAsync(string companyId)
+    {
+        var profile = await profileRepository.FindByCompanyIdAsync(CompanyId.From(companyId));
+        return profile?.ProfileId.Value;
+    }
+
     public async Task SetConsumptionThresholdsAsync(string profileId, Dictionary<string, decimal> thresholds)
     {
         var profile = await profileRepository.FindByIdAsync(ProfileId.From(profileId));

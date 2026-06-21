@@ -268,8 +268,9 @@ public class ServiceExecutionCommandService(
 
     private async Task PublishAndClearEventsAsync(ServiceExecution execution)
     {
-        foreach (var domainEvent in execution.DomainEvents)
-            await mediator.Publish(domainEvent, CancellationToken.None);
+        var events = execution.DomainEvents.ToArray();
         execution.ClearDomainEvents();
+        foreach (var domainEvent in events)
+            await mediator.Publish(domainEvent, CancellationToken.None);
     }
 }

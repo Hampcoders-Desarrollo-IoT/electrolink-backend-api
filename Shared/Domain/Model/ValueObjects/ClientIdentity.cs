@@ -25,6 +25,13 @@ public record ClientIdentity
     public static ClientIdentity FromCompany(string value)
         => new(EClientType.Company, CompanyId.From(value).Value);
 
+    public static ClientIdentity FromOwnerId(string value)
+        => value.StartsWith("ho-")
+            ? FromHomeowner(value)
+            : value.StartsWith("comp-")
+                ? FromCompany(value)
+                : throw new InvalidIdException("OwnerId", value);
+
     public static ClientIdentity From(string clientType, string value)
     {
         var type = clientType?.Trim().ToUpperInvariant() switch

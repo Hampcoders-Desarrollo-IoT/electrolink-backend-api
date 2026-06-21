@@ -16,7 +16,7 @@ public static class SubmitClientReviewCommandFromResourceAssembler
         );
         return new SubmitClientReviewCommand(
             ServiceExecutionId.From(executionId),
-            ClientIdentity.FromHomeowner(ownerId),
+            ClientIdentity.FromOwnerId(ownerId),
             resource.Rating,
             resource.Comment,
             categoryDictionary,

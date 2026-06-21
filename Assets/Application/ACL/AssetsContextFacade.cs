@@ -139,9 +139,9 @@ public class AssetsContextFacade(
 
     // ── Properties ────────────────────────────────────────
 
-    public async Task<(double Latitude, double Longitude)?> GetPropertyGeolocationAsync(string propertyId, string homeownerId)
+    public async Task<(double Latitude, double Longitude)?> GetPropertyGeolocationAsync(string propertyId, string ownerId)
     {
-        var prop = await propertyQueryService.Handle(new GetPropertyByIdQuery(PropertyId.From(propertyId), ClientIdentity.FromHomeowner(homeownerId)));
+        var prop = await propertyQueryService.Handle(new GetPropertyByIdQuery(PropertyId.From(propertyId), ClientIdentity.FromOwnerId(ownerId)));
         if (prop is null) return null;
         return (prop.Geolocation.Latitude, prop.Geolocation.Longitude);
     }
@@ -155,27 +155,27 @@ public class AssetsContextFacade(
 
     public async Task<bool> PropertyBelongsToOwnerAsync(string propertyId, string ownerId)
     {
-        var prop = await propertyQueryService.Handle(new GetPropertyByIdQuery(PropertyId.From(propertyId), ClientIdentity.FromHomeowner(ownerId)));
+        var prop = await propertyQueryService.Handle(new GetPropertyByIdQuery(PropertyId.From(propertyId), ClientIdentity.FromOwnerId(ownerId)));
         return prop is not null;
     }
 
     // ── Portfolio ─────────────────────────────────────────
 
-    public async Task<bool> PortfolioExistsAsync(string homeownerId)
+    public async Task<bool> PortfolioExistsAsync(string ownerId)
     {
-        var portfolio = await portfolioQueryService.Handle(new GetPortfolioByOwnerIdQuery(ClientIdentity.FromHomeowner(homeownerId)));
+        var portfolio = await portfolioQueryService.Handle(new GetPortfolioByOwnerIdQuery(ClientIdentity.FromOwnerId(ownerId)));
         return portfolio is not null;
     }
 
-    public async Task<string> CreatePortfolioAsync(string homeownerId)
+    public async Task<string> CreatePortfolioAsync(string ownerId)
     {
-        var portfolio = await portfolioCommandService.Handle(new CreatePropertyPortfolioCommand(ClientIdentity.FromHomeowner(homeownerId)));
+        var portfolio = await portfolioCommandService.Handle(new CreatePropertyPortfolioCommand(ClientIdentity.FromOwnerId(ownerId)));
         return portfolio?.Id.Value ?? string.Empty;
     }
 
-    public async Task<bool> HomeownerHasPropertiesAsync(string homeownerId)
+    public async Task<bool> HomeownerHasPropertiesAsync(string ownerId)
     {
-        var portfolio = await portfolioQueryService.Handle(new GetPortfolioByOwnerIdQuery(ClientIdentity.FromHomeowner(homeownerId)));
+        var portfolio = await portfolioQueryService.Handle(new GetPortfolioByOwnerIdQuery(ClientIdentity.FromOwnerId(ownerId)));
         return portfolio is not null && portfolio.Entries.Any();
     }
 

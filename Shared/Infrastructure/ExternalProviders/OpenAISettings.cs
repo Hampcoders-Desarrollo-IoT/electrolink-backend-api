@@ -12,6 +12,8 @@ public class OpenAISettings
     [Required(ErrorMessage = "OpenAI ModelId is required")]
     public string ModelId { get; set; } = string.Empty;
 
+    public string BaseUrl { get; set; } = "https://api.openai.com/v1";
+
     [Required(ErrorMessage = "OpenAI SystemPromptPath is required")]
     public string SystemPromptPath { get; set; } = string.Empty;
 

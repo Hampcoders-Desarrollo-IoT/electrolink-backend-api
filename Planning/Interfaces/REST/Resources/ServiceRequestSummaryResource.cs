@@ -27,7 +27,7 @@ namespace Hampcoders.Electrolink.API.Planning.Interfaces.REST.Resources;
 
 public record ServiceRequestSummaryResource(
     string RequestId,
-    string HomeownerId,
+    string OwnerId,
     string? PropertyId,
     string? SelectedRecipeId,
     string? SelectedTechnicianId,

@@ -46,14 +46,14 @@ public sealed class MonitoringContextFacade(
         string assignmentId,
         string requestId,
         string technicianId,
-        string homeownerId,
+        string clientId,
         string propertyId,
         RecipeSnapshot recipeSnapshot,
         DateTime scheduledAt,
         bool isPriority)
     {
         var command = new CreateServiceExecutionCommand(
-            AssignmentId.From(assignmentId), RequestId.From(requestId), TechnicianId.From(technicianId), ClientIdentity.FromHomeowner(homeownerId), PropertyId.From(propertyId),
+            AssignmentId.From(assignmentId), RequestId.From(requestId), TechnicianId.From(technicianId), ClientIdentity.FromOwnerId(clientId), PropertyId.From(propertyId),
             recipeSnapshot, scheduledAt, isPriority);
 
         var execution = await commandService.Handle(command);

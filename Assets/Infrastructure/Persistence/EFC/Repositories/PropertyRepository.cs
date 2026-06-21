@@ -12,20 +12,20 @@ public class PropertyRepository(AppDbContext context) : BaseRepository<Property,
     public async Task<IEnumerable<Property>> FindByOwnerAsync(ClientIdentity owner)
     {
         return await Context.Set<Property>()
-            .Where(p => p.Owner == owner)
+            .Where(p => p.Owner.ClientType == owner.ClientType && p.Owner.ClientId == owner.ClientId)
             .ToListAsync();
     }
     
     public async Task<Property?> FindByIdAndOwnerAsync(PropertyId propertyId, ClientIdentity owner)
     {
         return await Context.Set<Property>()
-            .FirstOrDefaultAsync(p => p.Id == propertyId && p.Owner == owner);
+            .FirstOrDefaultAsync(p => p.Id == propertyId && p.Owner.ClientType == owner.ClientType && p.Owner.ClientId == owner.ClientId);
     }
     public async Task<IEnumerable<Property>> GetAllFilteredAsync(ClientIdentity owner,
         string? city,
         string? street)
     {
-        var query = Context.Set<Property>().Where(p => p.Owner == owner);
+        var query = Context.Set<Property>().Where(p => p.Owner.ClientType == owner.ClientType && p.Owner.ClientId == owner.ClientId);
 
         if (!string.IsNullOrWhiteSpace(city))
         {
@@ -50,7 +50,7 @@ public class PropertyRepository(AppDbContext context) : BaseRepository<Property,
     public async Task<(IEnumerable<Property> Items, int TotalCount)> GetAllFilteredPaginatedAsync(
         ClientIdentity owner, string? city, string? street, int page, int pageSize)
     {
-        var query = Context.Set<Property>().Where(p => p.Owner == owner);
+        var query = Context.Set<Property>().Where(p => p.Owner.ClientType == owner.ClientType && p.Owner.ClientId == owner.ClientId);
 
         if (!string.IsNullOrWhiteSpace(city))
             query = query.Where(p => p.Address.City.Contains(city));

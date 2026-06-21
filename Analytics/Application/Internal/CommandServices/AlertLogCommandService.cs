@@ -19,10 +19,10 @@ public class AlertLogCommandService(
 {
     private async Task<AlertLog> GetOrCreateAlertLogAsync(string homeownerId)
     {
-        var log = await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId));
+        var log = await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId));
         if (log != null) return log;
 
-        log = AlertLog.CreateFor(ClientIdentity.FromHomeowner(homeownerId));
+        log = AlertLog.CreateFor(ClientIdentity.FromOwnerId(homeownerId));
         await alertLogRepository.AddAsync(log);
         return log;
     }
@@ -144,7 +144,7 @@ public class AlertLogCommandService(
 
     public async Task ResolveAlertAsync(string homeownerId, string sourceEventId)
     {
-        var log = await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId))
+        var log = await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId))
             ?? throw new InvalidOperationException($"No alert log found for homeowner '{homeownerId}'.");
 
         log.ResolveAlertBySourceEvent(SourceEventId.From(sourceEventId));
@@ -159,7 +159,7 @@ public class AlertLogCommandService(
 
     public async Task AcknowledgeAlertAsync(string homeownerId, string entryId)
     {
-        var log = await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId))
+        var log = await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId))
             ?? throw new InvalidOperationException($"No alert log found for homeowner '{homeownerId}'.");
 
         log.AcknowledgeAlert(AlertEntryId.From(entryId));
@@ -177,7 +177,7 @@ public class AlertLogCommandService(
         string entryId,
         string serviceRequestId)
     {
-        var log = await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(homeownerId))
+        var log = await alertLogRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(homeownerId))
             ?? throw new InvalidOperationException($"No alert log found for homeowner '{homeownerId}'.");
 
         log.LinkAlertToServiceRequest(

@@ -63,7 +63,7 @@ public class ServiceDesignQueryService : IServiceDesignQueryService
         if (!isActive)
             return new RequestEligibility(false, null, null, false, "PROFILE_INCOMPLETE");
 
-        var eligibility = await _externalSubscriptionsService.GetRemainingRequestsAsync(query.Client.ToHomeownerId().Value);
+        var eligibility = await _externalSubscriptionsService.GetRemainingRequestsAsync(query.Client.ClientId);
 
         return new RequestEligibility(
             eligibility.canCreate,

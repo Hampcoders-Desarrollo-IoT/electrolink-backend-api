@@ -7,7 +7,7 @@ public static class ServiceRequestSummaryResourceFromEntityAssembler
     public static ServiceRequestSummaryResource ToResource(ServiceRequest request) =>
         new(
             request.RequestId.Value,
-            request.HomeownerId.Value,
+            request.Client.ClientId,
             request.PropertyId?.Value,
             request.SelectedRecipeId?.Value,
             request.SelectedTechnicianId?.Value,

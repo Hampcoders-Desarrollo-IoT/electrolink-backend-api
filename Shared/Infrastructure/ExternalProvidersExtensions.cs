@@ -65,12 +65,17 @@ public static class ExternalProvidersExtensions
                 services.Configure<OpenAISettings>(configuration.GetSection("OpenAI"));
                 services.AddScoped<IAIMatchingProvider, OpenAIMatchingProvider>();
                 break;
+            case "gemini":
+                services.Configure<GeminiSettings>(configuration.GetSection("Gemini"));
+                services.AddHttpClient();
+                services.AddScoped<IAIMatchingProvider, GeminiMatchingProvider>();
+                break;
             case "disabled":
                 services.AddScoped<IAIMatchingProvider, NullAIMatchingProvider>();
                 break;
             default:
                 throw new InvalidOperationException(
-                    "Unknown AI matching provider: '{provider}'. Supported: openai, disabled");
+                    "Unknown AI matching provider: '{provider}'. Supported: openai, gemini, disabled");
         }
 
         services.AddScoped<IMatchingService, HybridMatchingService>();

@@ -21,7 +21,7 @@ public static class UpdatePropertyCommandFromResourceAssembler
 
         return new UpdatePropertyCommand(
             PropertyId.From(propertyId),
-            ClientIdentity.FromHomeowner(resource.OwnerId),
+            ClientIdentity.FromOwnerId(resource.OwnerId),
             address
         );
     }

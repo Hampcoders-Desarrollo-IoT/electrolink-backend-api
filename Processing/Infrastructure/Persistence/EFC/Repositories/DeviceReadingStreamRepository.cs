@@ -32,7 +32,7 @@ public class DeviceReadingStreamRepository(AppDbContext context)
     public async Task<IEnumerable<DeviceReadingStream>> FindByOwnerAsync(ClientIdentity owner)
         => await Context.Set<DeviceReadingStream>()
             .Include(s => s.Readings.OrderByDescending(r => r.Timestamp).Take(120))
-            .Where(s => s.Owner == owner)
+            .Where(s => s.Owner.ClientType == owner.ClientType && s.Owner.ClientId == owner.ClientId)
             .ToListAsync();
 
     public async Task<IEnumerable<DeviceReadingStream>> FindStreamsExceedingThresholdAsync(DateTime lastSeenBefore)

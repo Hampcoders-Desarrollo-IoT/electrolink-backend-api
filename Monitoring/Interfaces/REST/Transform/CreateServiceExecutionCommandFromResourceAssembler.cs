@@ -18,7 +18,7 @@ public static class CreateServiceExecutionCommandFromResourceAssembler
             AssignmentId.From(resource.AssignmentId),
             RequestId.From(resource.RequestId),
             TechnicianId.From(resource.TechnicianId),
-            ClientIdentity.FromHomeowner(resource.OwnerId),
+            ClientIdentity.FromOwnerId(resource.OwnerId),
             PropertyId.From(resource.PropertyId),
             RecipeSnapshot.Create(
                 RecipeId.From(resource.RecipeSnapshot.RecipeId),
