@@ -67,8 +67,11 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
     public string? TechnicalReportFindings { get; private set; }
     [MaxLength(4000)]
     public string? TechnicalReportRecommendations { get; private set; }
+    [MaxLength(4000)]
+    public string? TechnicalReportIotFindings { get; private set; }
     public int TechnicalReportVersion { get; private set; }
     public bool IsPriority { get; private set; }
+    public bool IsStaffTechnician { get; private set; }
     private readonly List<ServiceEvaluation> _evaluations = new();
     public IReadOnlyCollection<ServiceEvaluation> Evaluations => _evaluations.AsReadOnly();
     public DateTime? NoShowDetectedAt { get; private set; }
@@ -101,6 +104,7 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
             IsPriority = command.IsPriority,
             ServiceType = command.ServiceType,
             IotContext = command.IotContext,
+            IsStaffTechnician = command.IsStaffTechnician,
             TechnicalReportVersion = 0
         };
 
@@ -209,7 +213,7 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
             recordedAt, DateTime.UtcNow));
     }
 
-    public void UpdateTechnicalReport(string content, string findings, string recommendations, DateTime updatedAt)
+    public void UpdateTechnicalReport(string content, string findings, string recommendations, string? iotFindings, DateTime updatedAt)
     {
         EnsureTransitionValid(nameof(UpdateTechnicalReport));
 
@@ -219,6 +223,7 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
         TechnicalReportContent         = content;
         TechnicalReportFindings        = findings;
         TechnicalReportRecommendations = recommendations;
+        TechnicalReportIotFindings     = iotFindings;
         TechnicalReportVersion++;
 
         RaiseDomainEvent(new TechnicalReportUpdatedEvent(
@@ -239,7 +244,11 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
         if (_componentSubstitutions.Count == 0)
             throw new InvalidOperationException("At least one component record is required to complete the service.");
 
-        Status = EExecutionStatus.PendingReview;
+        if (IsStaffTechnician)
+            Status = EExecutionStatus.Completed;
+        else
+            Status = EExecutionStatus.PendingReview;
+
         CompletedAt = completedAt;
 
         bool hasOverage = _componentSubstitutions.Any(c => c.Delta > 0);
@@ -258,7 +267,8 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
             hasOverage,
             _workPhotos.Select(p => p.PhotoUrl).ToList(),
             TechnicalReportContent,
-            completedAt, DateTime.UtcNow));
+            completedAt, DateTime.UtcNow,
+            IsStaffTechnician));
     }
 
     public void Cancel(CancellationRequestId? cancellationRequestId, string cancelledById, ECancelledBy cancelledBy, ECancellationReason reason, string? notes, bool requestReassignment)
@@ -294,9 +304,15 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
         bool clientEvaluated = _evaluations.Any(e => e.ReviewerRole == "Client");
         bool technicianEvaluated = _evaluations.Any(e => e.ReviewerRole == "Technician");
 
-        if (clientEvaluated && technicianEvaluated)
+        if (IsStaffTechnician)
         {
-            Status = EExecutionStatus.Completed;
+            if (clientEvaluated)
+                Status = EExecutionStatus.Completed;
+        }
+        else
+        {
+            if (clientEvaluated && technicianEvaluated)
+                Status = EExecutionStatus.Completed;
         }
     }
 
@@ -344,6 +360,9 @@ public class ServiceExecution : BaseAggregateRoot, IExecutable
 
     public void SubmitTechnicianReview(TechnicianId technicianId, int rating, string? comment, Dictionary<string, int> categories, DateTime submittedAt)
     {
+        if (IsStaffTechnician)
+            throw new InvalidOperationException("Staff technicians cannot submit reviews for their own service.");
+
         if (Status != EExecutionStatus.PendingReview && Status != EExecutionStatus.Completed)
             throw new InvalidOperationException(
                 $"Technician review can only be submitted for PendingReview or Completed services, but status is {Status}.");

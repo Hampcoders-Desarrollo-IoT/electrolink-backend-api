@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Hampcoders.Electrolink.API.Processing.Domain.Model.Aggregates;
 using Hampcoders.Electrolink.API.Processing.Domain.Model.Commands;
 using Hampcoders.Electrolink.API.Processing.Domain.Model.ValueObjects;
@@ -17,6 +18,7 @@ public class RelayCommandService(
     IAssetsContextFacade           assetsFacade,
     IProfilesContextFacade         profilesFacade,
     IServiceOperationContextFacade serviceOpFacade,
+    IMqttSubscriptionService       mqttService,
     IUnitOfWork                    unitOfWork,
     IMediator                      mediator,
     IServiceScopeFactory           scopeFactory,
@@ -71,8 +73,17 @@ public class RelayCommandService(
             await mediator.Publish(ev, CancellationToken.None);
         relayCmd.ClearDomainEvents();
 
+        // Publicar comando por MQTT al dispositivo físico
+        var mqttPayload = JsonSerializer.Serialize(new
+        {
+            commandId = relayCmd.CommandId.Value,
+            targetState = command.TargetRelayState,
+            issuedAt = DateTime.UtcNow
+        });
+        await mqttService.PublishCommandAsync(command.DeviceId, mqttPayload);
+
         logger.LogInformation(
-            "[IoT] RelayCommandIssued — DeviceId: {DeviceId} | Target: {Target} | By: {By}",
+            "[IoT] RelayCommandIssued — DeviceId: {DeviceId} | Target: {Target} | By: {By} | MQTT: published",
             command.DeviceId, command.TargetRelayState, command.TechnicianId);
 
         var commandId = relayCmd.CommandId.Value;

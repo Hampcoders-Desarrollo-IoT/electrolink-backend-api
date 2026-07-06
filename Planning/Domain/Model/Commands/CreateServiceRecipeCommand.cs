@@ -9,6 +9,7 @@ public record CreateServiceRecipeCommand(
     string ServiceName,
     string ServiceDescription,
     string ServiceCategory,
+    bool RequiresIoTCertification,
     IReadOnlyList<ComponentRequirementItem> ComponentRequirements,
     int EstimatedDurationHours,
     int EstimatedDurationMinutes,

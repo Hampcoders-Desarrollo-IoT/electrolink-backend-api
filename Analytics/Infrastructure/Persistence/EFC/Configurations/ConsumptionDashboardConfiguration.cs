@@ -67,6 +67,15 @@ public class ConsumptionDashboardConfiguration : IEntityTypeConfiguration<Consum
             m.Property(p => p.Currency).HasColumnName("cost_projection_currency");
         });
 
+        builder.OwnsOne(d => d.Savings, s =>
+        {
+            s.WithOwner().HasForeignKey("DashboardId");
+            s.Property(p => p.PreventiveCostPerEvent).HasColumnName("savings_preventive_cost");
+            s.Property(p => p.CorrectiveCostPerEvent).HasColumnName("savings_corrective_cost");
+            s.Property(p => p.AnomaliesDetectedOnTime).HasColumnName("savings_anomalies_on_time");
+            s.Property(p => p.AnomaliesDetectedLate).HasColumnName("savings_anomalies_late");
+        });
+
         builder.Property<Dictionary<string, decimal>>("_consumptionThresholds")
             .HasConversion(
                 v => JsonSerializer.Serialize(v, JsonOptions),

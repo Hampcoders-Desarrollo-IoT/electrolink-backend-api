@@ -19,6 +19,12 @@ public class ServiceCatalogController(
     IServiceDesignQueryService queryService)
     : ControllerBase
 {
+    private string ResolveTechnicianId(string technicianId)
+    {
+        if (technicianId == "me")
+            return User.GetTechnicianId();
+        return technicianId;
+    }
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -26,7 +32,7 @@ public class ServiceCatalogController(
     {
         try
         {
-            var command = new CreateServiceCatalogCommand(TechnicianId.From(technicianId), ProfileId.From(User.GetProfileId()));
+            var command = new CreateServiceCatalogCommand(TechnicianId.From(ResolveTechnicianId(technicianId)), ProfileId.From(User.GetProfileId()));
             await commandService.Handle(command);
             
             return StatusCode(StatusCodes.Status201Created);
@@ -43,7 +49,7 @@ public class ServiceCatalogController(
     public async Task<ActionResult<ServiceCatalogResource>> GetCatalog(
         [FromRoute] string technicianId)
     {
-        var catalog = await queryService.Handle(new GetServiceCatalogQuery(TechnicianId.From(technicianId)));
+        var catalog = await queryService.Handle(new GetServiceCatalogQuery(TechnicianId.From(ResolveTechnicianId(technicianId))));
         if (catalog is null) return NotFound(new { message = "Catalog not found" });
         return Ok(ServiceCatalogResourceFromEntityAssembler.ToResource(catalog));
     }
@@ -83,7 +89,7 @@ public class ServiceCatalogController(
         [FromRoute] string technicianId,
         [FromRoute] string recipeId)
     {
-        var catalog = await queryService.Handle(new GetServiceCatalogQuery(TechnicianId.From(technicianId)));
+        var catalog = await queryService.Handle(new GetServiceCatalogQuery(TechnicianId.From(ResolveTechnicianId(technicianId))));
         if (catalog is null) return NotFound(new { message = "Catalog not found" });
 
         var recipe = catalog.Recipes.FirstOrDefault(r => r.Id.Value == recipeId);
@@ -103,7 +109,7 @@ public class ServiceCatalogController(
     {
         try
         {
-            var catalog = await queryService.Handle(new GetServiceCatalogQuery(TechnicianId.From(technicianId)));
+            var catalog = await queryService.Handle(new GetServiceCatalogQuery(TechnicianId.From(ResolveTechnicianId(technicianId))));
             if (catalog is null) return NotFound(new { message = "Catalog not found" });
 
             var command = UpdateServiceRecipeCommandFromResourceAssembler.ToCommandFromResource(
@@ -131,7 +137,7 @@ public class ServiceCatalogController(
     {
         try
         {
-            var catalog = await queryService.Handle(new GetServiceCatalogQuery(TechnicianId.From(technicianId)));
+            var catalog = await queryService.Handle(new GetServiceCatalogQuery(TechnicianId.From(ResolveTechnicianId(technicianId))));
             if (catalog is null) return NotFound(new { message = "Catalog not found" });
 
             await commandService.Handle(new DeactivateServiceRecipeCommand(
@@ -156,7 +162,7 @@ public class ServiceCatalogController(
     {
         try
         {
-            var catalog = await queryService.Handle(new GetServiceCatalogQuery(TechnicianId.From(technicianId)));
+            var catalog = await queryService.Handle(new GetServiceCatalogQuery(TechnicianId.From(ResolveTechnicianId(technicianId))));
             if (catalog is null) return NotFound(new { message = "Catalog not found" });
 
             await commandService.Handle(new ReactivateServiceRecipeCommand(

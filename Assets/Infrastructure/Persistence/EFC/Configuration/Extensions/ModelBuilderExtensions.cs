@@ -4,6 +4,7 @@ using Hampcoders.Electrolink.API.Assets.Domain.Model.Entities;
 using Hampcoders.Electrolink.API.Assets.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Hampcoders.Electrolink.API.Assets.Infrastructure.Persistence.EFC.Configuration.Extensions;
 
@@ -327,6 +328,13 @@ public static class ModelBuilderExtensions
             .HasColumnType("text");
 
         builder.Entity<Property>()
+            .Property(p => p.InstalledDeviceIds)
+            .Metadata.SetValueComparer(new ValueComparer<IReadOnlyCollection<string>>(
+                (c1, c2) => c1!.SequenceEqual(c2!),
+                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v!.GetHashCode())),
+                c => c.ToList()));
+
+        builder.Entity<Property>()
             .Property(p => p.HasActiveIoTMonitoring)
             .HasColumnName("has_active_iot_monitoring")
             .IsRequired();
@@ -393,6 +401,14 @@ public static class ModelBuilderExtensions
                 id => id == null ? null : id.Value,
                 v => v == null ? null : TechnicianId.From(v))
             .HasColumnName("installed_by_technician_id")
+            .HasMaxLength(60);
+
+        builder.Entity<IoTDevice>()
+            .Property(d => d.InstalledByStaffMemberId)
+            .HasConversion(
+                id => id == null ? null : id.Value,
+                v => v == null ? null : StaffMemberId.From(v))
+            .HasColumnName("installed_by_staff_member_id")
             .HasMaxLength(60);
 
         builder.Entity<IoTDevice>()

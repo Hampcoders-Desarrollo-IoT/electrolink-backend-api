@@ -5,6 +5,7 @@ using Hampcoders.Electrolink.API.Monitoring.Domain.Services;
 using Hampcoders.Electrolink.API.Monitoring.Interfaces.REST.Resources;
 using Hampcoders.Electrolink.API.Monitoring.Interfaces.REST.Transform;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
+using Hampcoders.Electrolink.API.Shared.Interfaces.REST;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Hampcoders.Electrolink.API.Monitoring.Interfaces.REST;
@@ -16,6 +17,11 @@ public class ServiceExecutionsController(
     IServiceExecutionCommandService commandService,
     IServiceExecutionQueryService queryService) : ControllerBase
 {
+    private string ResolveTechnicianId(string technicianId)
+    {
+        if (technicianId == "me") return User.GetTechnicianId();
+        return technicianId;
+    }
     [HttpPost]
     [ProducesResponseType(typeof(ServiceExecutionResource), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -60,7 +66,7 @@ public class ServiceExecutionsController(
     [ProducesResponseType(typeof(IEnumerable<ServiceExecutionResource>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ServiceExecutionResource>>> GetAssignedByTechnician(string technicianId)
     {
-        var executions = await queryService.Handle(new GetAssignedServicesByTechnicianQuery(TechnicianId.From(technicianId)));
+        var executions = await queryService.Handle(new GetAssignedServicesByTechnicianQuery(TechnicianId.From(ResolveTechnicianId(technicianId))));
         return Ok(executions.Select(ServiceExecutionResourceFromEntityAssembler.ToResourceFromEntity));
     }
 
@@ -76,7 +82,7 @@ public class ServiceExecutionsController(
     [ProducesResponseType(typeof(IEnumerable<ServiceExecutionResource>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ServiceExecutionResource>>> GetHistoryByTechnician(string technicianId)
     {
-        var executions = await queryService.Handle(new GetServiceHistoryByTechnicianQuery(TechnicianId.From(technicianId)));
+        var executions = await queryService.Handle(new GetServiceHistoryByTechnicianQuery(TechnicianId.From(ResolveTechnicianId(technicianId))));
         return Ok(executions.Select(ServiceExecutionResourceFromEntityAssembler.ToResourceFromEntity));
     }
 

@@ -61,6 +61,7 @@ public class ServiceCatalogCommandService(
             command.ServiceName,
             command.ServiceDescription,
             Enum.Parse<EServiceCategory>(command.ServiceCategory, ignoreCase: true),
+            command.RequiresIoTCertification,
             componentRequirements,
             EstimatedDuration.FromHoursAndMinutes(command.EstimatedDurationHours, command.EstimatedDurationMinutes),
             ServicePricing.Create(

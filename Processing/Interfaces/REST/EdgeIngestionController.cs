@@ -1,5 +1,6 @@
 using Hampcoders.Electrolink.API.Processing.Domain.Model.Commands;
 using Hampcoders.Electrolink.API.Processing.Domain.Services;
+using Hampcoders.Electrolink.API.Processing.Infrastructure.Pipeline.Middleware.Attributes;
 using Hampcoders.Electrolink.API.Processing.Interfaces.REST.Resources;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -9,6 +10,7 @@ namespace Hampcoders.Electrolink.API.Processing.Interfaces.REST;
 [ApiController]
 [Route("api/v1/iot/edge")]
 [Produces("application/json")]
+[RequireEdgeApiKey]
 public class EdgeIngestionController(
     IDeviceReadingStreamCommandService streamService,
     IRelayCommandService               relayService) : ControllerBase

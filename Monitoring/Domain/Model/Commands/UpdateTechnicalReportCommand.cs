@@ -12,6 +12,7 @@ public record UpdateTechnicalReportCommand(
     string ReportContent,
     string Findings,
     string Recommendations,
+    string? IotFindings,
     DateTime UpdatedAt
 );
 

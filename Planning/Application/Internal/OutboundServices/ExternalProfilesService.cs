@@ -50,5 +50,14 @@ public class ExternalProfilesService(IProfilesContextFacade profilesContextFacad
         if (!isActive)
             throw new InactiveHomeownerException(homeownerId);
     }
-    
+
+    // ── Staff / Maker Methods ────────────────────────────────
+
+    public async Task<IEnumerable<(string Id, string UserId, string FirstName, string LastName, bool IsIoTCertified)>>
+        FindAvailableMakersInZoneAsync(double latitude, double longitude, bool requireIoTCertification = false)
+        => await profilesContextFacade.FindAvailableMakersInZoneAsync(latitude, longitude, requireIoTCertification);
+
+    public async Task<(string Id, string UserId, string FirstName, string LastName, bool IsIoTCertified, string? Zone)?>
+        GetStaffByUserIdAsync(string userId)
+        => await profilesContextFacade.GetStaffByUserIdAsync(userId);
 }

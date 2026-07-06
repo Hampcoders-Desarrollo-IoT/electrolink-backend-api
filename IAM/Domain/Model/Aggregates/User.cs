@@ -11,11 +11,12 @@ public class User : BaseAggregateRoot
     public UserId Id { get; private set; }
     public Email Email { get; private set; }
     public HashedPassword PasswordHash { get; private set; }
-    public EUserRole Role { get; private set; }
+    public AccessRole Role { get; private set; }
     public EUserStatus Status { get; private set; }
+    public PasswordResetToken? PasswordResetToken { get; private set; }
     private User() { }
 
-    public static User Create(Email email, HashedPassword passwordHash, EUserRole role)
+    public static User Create(Email email, HashedPassword passwordHash, AccessRole role)
     {
         var user = new User
         {
@@ -26,7 +27,7 @@ public class User : BaseAggregateRoot
             Status = EUserStatus.Active
         };
 
-        user.RaiseDomainEvent(new UserRegisteredEvent(user.Id.Value, user.Email.Value, DateTime.UtcNow, user.Role.ToString()));
+        user.RaiseDomainEvent(new UserRegisteredEvent(user.Id.Value, user.Email.Value, DateTime.UtcNow, user.Role.ToString(), user.Role.ToString()));
 
         return user;
     }
@@ -54,5 +55,22 @@ public class User : BaseAggregateRoot
         if (Status == EUserStatus.Active) return;
         Status = EUserStatus.Active;
         RaiseDomainEvent(new UserAccountActivatedEvent(Id.Value, DateTime.UtcNow));
+    }
+
+    public void RequestPasswordReset()
+    {
+        PasswordResetToken = PasswordResetToken.Generate();
+        RaiseDomainEvent(new PasswordResetRequestedEvent(
+            Id.Value, Email.Value, PasswordResetToken.Value, PasswordResetToken.ExpiresAt, DateTime.UtcNow));
+    }
+
+    public void ResetPassword(string token, string newPasswordHash)
+    {
+        if (PasswordResetToken == null || !PasswordResetToken.IsValid(token))
+            throw new ArgumentException("Reset token is invalid or expired.");
+
+        PasswordHash = HashedPassword.FromHash(newPasswordHash);
+        PasswordResetToken = null;
+        RaiseDomainEvent(new PasswordResetEvent(Id.Value, DateTime.UtcNow));
     }
 }

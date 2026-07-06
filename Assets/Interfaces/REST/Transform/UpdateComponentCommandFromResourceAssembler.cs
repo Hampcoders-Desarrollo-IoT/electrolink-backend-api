@@ -15,7 +15,6 @@ public static class UpdateComponentCommandFromResourceAssembler
             ComponentId.From(componentId),
             resource.Name,
             resource.Description,
-            ComponentTypeId.From(resource.TypeId),
             resource.IsActive
         );
     }

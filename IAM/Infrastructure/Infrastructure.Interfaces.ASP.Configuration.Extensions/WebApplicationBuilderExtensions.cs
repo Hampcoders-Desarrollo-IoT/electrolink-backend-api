@@ -25,5 +25,6 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddScoped<IHashingService, HashingService>();
         builder.Services.AddScoped<IIamContextFacade, IamContextFacade>();
         builder.Services.AddScoped<ExternalProfilesService>();
+        builder.Services.AddScoped<IStaffUserCommandService, StaffUserCommandService>();
     }
 }

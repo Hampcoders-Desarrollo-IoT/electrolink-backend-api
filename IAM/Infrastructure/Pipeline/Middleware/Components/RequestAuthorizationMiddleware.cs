@@ -43,7 +43,15 @@ public class RequestAuthorizationMiddleware(RequestDelegate next)
         var getUserByIdQuery = new GetUserByIdQuery(userId);
         var user = await userQueryService.Handle(getUserByIdQuery);
 
+        if (user == null)
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsync("Unauthorized: User not found");
+            return;
+        }
+
         context.Items["User"] = user;
+        context.Items["AccessRole"] = user.Role.ToString();
 
         await next(context);
     }

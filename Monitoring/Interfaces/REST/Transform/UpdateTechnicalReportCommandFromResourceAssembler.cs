@@ -15,6 +15,7 @@ public static class UpdateTechnicalReportCommandFromResourceAssembler
             resource.ReportContent,
             resource.Findings,
             resource.Recommendations,
+            resource.IotFindings,
             resource.UpdatedAt
         );
     }

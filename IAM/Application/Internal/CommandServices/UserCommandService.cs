@@ -82,11 +82,11 @@ public class UserCommandService(
             throw new EmailAlreadyInUseException(Email.From(command.Email));
         
         var hash = HashedPassword.FromHash(hashingService.HashPassword(command.Password));
-        var role = Enum.TryParse<EUserRole>(command.Role, ignoreCase: true, out var parsedRole)
+        var role = Enum.TryParse<AccessRole>(command.Role, ignoreCase: true, out var parsedRole)
             ? parsedRole
-            : EUserRole.User;
+            : AccessRole.User;
 
-        if (role != EUserRole.User)
+        if (role != AccessRole.User)
             throw new InvalidOperationException("Public registration only allows User role.");
 
         var user = User.Create(Email.From(command.Email), hash, role);
@@ -168,5 +168,41 @@ public class UserCommandService(
         user.ClearDomainEvents();
 
         logger.LogInformation("[IAM] User {UserId} activated", command.UserId);
+    }
+
+    public async Task Handle(RequestPasswordResetCommand command)
+    {
+        var user = await userRepository.FindByEmailAsync(command.Email)
+            ?? throw new ArgumentException("User not found for the given email.");
+
+        user.RequestPasswordReset();
+        userRepository.Update(user);
+        await unitOfWork.CompleteAsync();
+
+        foreach (var domainEvent in user.DomainEvents)
+            await mediator.Publish(domainEvent);
+        user.ClearDomainEvents();
+
+        logger.LogInformation("[IAM] Password reset requested for {Email}", command.Email);
+    }
+
+    public async Task Handle(ResetPasswordCommand command)
+    {
+        if (command.NewPassword != command.NewPasswordConfirmation)
+            throw new ArgumentException("Passwords do not match.");
+
+        var user = await userRepository.FindByPasswordResetTokenAsync(command.ResetToken)
+            ?? throw new ArgumentException("Invalid or expired reset token.");
+
+        var newHash = hashingService.HashPassword(command.NewPassword);
+        user.ResetPassword(command.ResetToken, newHash);
+        userRepository.Update(user);
+        await unitOfWork.CompleteAsync();
+
+        foreach (var domainEvent in user.DomainEvents)
+            await mediator.Publish(domainEvent);
+        user.ClearDomainEvents();
+
+        logger.LogInformation("[IAM] Password reset completed for user {UserId}", user.Id.Value);
     }
 }

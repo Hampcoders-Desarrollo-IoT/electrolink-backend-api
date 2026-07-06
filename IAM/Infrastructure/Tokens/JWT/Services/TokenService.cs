@@ -41,7 +41,8 @@ public class TokenService(IOptions<TokenSettings> tokenSettings, ILogger<TokenSe
         {
             new(ClaimTypes.NameIdentifier, user.Id.Value),
             new(ClaimTypes.Email, user.Email.Value),
-            new(ClaimTypes.Role, user.Role.ToString())
+            new(ClaimTypes.Role, user.Role.ToString()),
+            new("access_role", user.Role.ToString())
         };
 
         if (profileClaims.HasValue)

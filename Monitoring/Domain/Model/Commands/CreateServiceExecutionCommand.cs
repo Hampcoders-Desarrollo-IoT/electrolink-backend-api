@@ -16,5 +16,6 @@ public record CreateServiceExecutionCommand(
     DateTime ScheduledDateTime,
     bool IsPriority,
     IoTContextSnapshot? IotContext = null,
-    EServiceType ServiceType = EServiceType.Standard
+    EServiceType ServiceType = EServiceType.Standard,
+    bool IsStaffTechnician = false
 );

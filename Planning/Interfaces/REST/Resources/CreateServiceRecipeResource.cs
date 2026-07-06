@@ -6,6 +6,7 @@ public record CreateServiceRecipeResource(
     string ServiceName,
     string ServiceDescription,
     string ServiceCategory,
+    bool RequiresIoTCertification,
     IReadOnlyList<ComponentRequirementResource> ComponentRequirements,
     int EstimatedDurationHours,
     int EstimatedDurationMinutes,

@@ -142,7 +142,7 @@ public class ServiceExecutionCommandService(
 
         execution.UpdateTechnicalReport(
             command.ReportContent, command.Findings,
-            command.Recommendations, command.UpdatedAt);
+            command.Recommendations, command.IotFindings, command.UpdatedAt);
 
         await unitOfWork.CompleteAsync();
         await PublishAndClearEventsAsync(execution);

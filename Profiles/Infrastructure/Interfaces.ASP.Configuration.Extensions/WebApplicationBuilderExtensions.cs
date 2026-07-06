@@ -22,5 +22,10 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddScoped<IProfileUniquenessChecker, ProfileUniquenessChecker>();
         builder.Services.AddScoped<ExternalIamService>();
         builder.Services.AddScoped<DomainExceptionFilter>();
+
+        // Staff Member
+        builder.Services.AddScoped<IStaffMemberRepository, StaffMemberRepository>();
+        builder.Services.AddScoped<IStaffMemberCommandService, StaffMemberCommandService>();
+        builder.Services.AddScoped<IStaffMemberQueryService, StaffMemberQueryService>();
     }
 }

@@ -49,4 +49,11 @@ public class UserRepository(AppDbContext context) : BaseRepository<User, UserId>
             .Take(pageSize)
             .ToListAsync();
     }
+
+    public async Task<User?> FindByPasswordResetTokenAsync(string resetToken)
+    {
+        return await Context.Set<User>()
+            .FirstOrDefaultAsync(u =>
+                u.PasswordResetToken != null && u.PasswordResetToken.Value == resetToken);
+    }
 }

@@ -16,7 +16,6 @@ public static class ModelBuilderExtensions
             .HasConversion(
                 id => id.Value,
                 value => UserId.From(value))
-            .HasColumnName("Id")
             .IsRequired()
             .ValueGeneratedOnAdd();
 
@@ -41,6 +40,17 @@ public static class ModelBuilderExtensions
 
                 e.HasIndex(x => x.Value)
                     .IsUnique();
+            });
+
+        builder.Entity<User>()
+            .OwnsOne(u => u.PasswordResetToken, prt =>
+            {
+                prt.WithOwner().HasForeignKey("Id");
+                prt.Property(x => x.Value)
+                    .HasColumnName("password_reset_token")
+                    .HasMaxLength(100);
+                prt.Property(x => x.ExpiresAt)
+                    .HasColumnName("password_reset_token_expires_at");
             });
     }
 }

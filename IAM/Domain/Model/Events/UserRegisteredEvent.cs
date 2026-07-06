@@ -6,7 +6,8 @@ public record UserRegisteredEvent(
     string UserId,
     string Username,
     DateTime OccurredOn,
-    string Role
+    string Role,
+    string? AccessRole = null
 ) : IEvent
 {
     public Guid EventId { get; init; } = Guid.NewGuid();

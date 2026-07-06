@@ -7,6 +7,7 @@ using Hampcoders.Electrolink.API.Processing.Infrastructure.Persistence.EFC.Repos
 using Hampcoders.Electrolink.API.Processing.Infrastructure.Services;
 using Hampcoders.Electrolink.API.Processing.Interfaces.ACL;
 using Hampcoders.Electrolink.API.Processing.Interfaces.ACL.Services;
+using Hampcoders.Electrolink.API.Processing.Infrastructure.Interfaces.ASP.Configuration;
 
 namespace Hampcoders.Electrolink.API.Processing.Infrastructure.Interfaces.ASP.Configuration.Extensions;
 
@@ -34,5 +35,18 @@ public static class WebApplicationBuilderExtensions
 
         // ACL
         builder.Services.AddScoped<IProcessingContextFacade, ProcessingContextFacade>();
+
+        // MQTT Subscriber — configuración
+        builder.Services.Configure<MqttConfiguration>(
+            builder.Configuration.GetSection(MqttConfiguration.SectionName));
+
+        // MQTT Subscriber — singleton compartido entre BackgroundService y HealthCheck
+        builder.Services.AddSingleton<IMqttSubscriptionService, MqttDeviceSubscriberService>();
+        builder.Services.AddHostedService(sp =>
+            (MqttDeviceSubscriberService)sp.GetRequiredService<IMqttSubscriptionService>());
+
+        // MQTT Health Check — monitoreo de conectividad IoT
+        builder.Services.AddHealthChecks()
+            .AddCheck<MqttHealthCheck>("mqtt", tags: new[] { "iot", "readiness" });
     }
 }

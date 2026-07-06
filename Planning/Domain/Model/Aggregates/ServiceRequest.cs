@@ -17,6 +17,8 @@ public class ServiceRequest : BaseAggregateRoot
     public RecipeId? SelectedRecipeId { get; private set; }
     public EServiceCategory? RequestedCategory { get; private set; }
     public TechnicianId? SelectedTechnicianId { get; private set; }
+    public StaffMemberId? AssignedStaffMemberId { get; private set; }
+    public EAssignmentType? AssignmentType { get; private set; }
     public RecipeSnapshot? RecipeSnapshot { get; private set; }
     public AssignmentId? AssignmentId { get; private set; }
     public RequestPreferences? Preferences { get; private set; }
@@ -139,8 +141,18 @@ public class ServiceRequest : BaseAggregateRoot
         EnsureStatus(ERequestStatus.PendingAssignment);
         Status = ERequestStatus.Assigned;
         SelectedTechnicianId = technicianId;
+        AssignmentType = EAssignmentType.Technician;
         RecipeSnapshot = snapshot;
         SelectedRecipeId = snapshot.RecipeId;
+        AssignmentId = assignmentId;
+    }
+
+    public void MarkAsAssignedToStaff(AssignmentId assignmentId, StaffMemberId staffMemberId)
+    {
+        EnsureStatus(ERequestStatus.PendingAssignment);
+        Status = ERequestStatus.Assigned;
+        AssignedStaffMemberId = staffMemberId;
+        AssignmentType = EAssignmentType.Staff;
         AssignmentId = assignmentId;
     }
 

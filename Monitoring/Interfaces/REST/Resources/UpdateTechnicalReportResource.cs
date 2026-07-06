@@ -4,5 +4,6 @@ public record UpdateTechnicalReportResource(
     string ReportContent,
     string Findings,
     string Recommendations,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    string? IotFindings = null
 );

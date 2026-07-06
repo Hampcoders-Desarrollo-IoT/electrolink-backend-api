@@ -6,4 +6,5 @@ namespace Hampcoders.Electrolink.API.Planning.Domain.Services;
 public interface IServiceAssignmentCommandService
 {
     Task Handle(ExecuteMatchingAlgorithmCommand command);
+    Task Handle(AssignStaffToServiceCommand command);
 }

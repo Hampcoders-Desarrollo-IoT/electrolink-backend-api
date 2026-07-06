@@ -25,6 +25,7 @@ public class ServiceRecipe
     public IReadOnlyList<string> Deliverables => _deliverables.AsReadOnly();
     public WarrantyPeriod WarrantyPeriod { get; private set; }
     public bool IsActive { get; private set; }
+    public bool RequiresIoTCertification { get; private set; }
     public int TimesRequested { get; private set; }
     
     // Constructor para EF Core
@@ -37,6 +38,7 @@ public class ServiceRecipe
         string serviceName,
         string serviceDescription,
         EServiceCategory serviceCategory,
+        bool requiresIoTCertification,
         IReadOnlyList<ComponentRequirementItem> componentRequirements,
         EstimatedDuration estimatedDuration,
         ServicePricing pricing,
@@ -44,9 +46,6 @@ public class ServiceRecipe
         IReadOnlyList<string> deliverables,
         WarrantyPeriod warrantyPeriod)
     {
-        if (componentRequirements.Count == 0)
-            throw new AtLeastOneComponentRequiredException();
-
         return new ServiceRecipe
         {
             Id = RecipeId.NewId(),
@@ -55,6 +54,7 @@ public class ServiceRecipe
             ServiceName = serviceName.Trim(),
             ServiceDescription = serviceDescription.Trim(),
             ServiceCategory = serviceCategory,
+            RequiresIoTCertification = requiresIoTCertification,
             _componentRequirements = componentRequirements.ToList(),
             EstimatedDuration = estimatedDuration,
             Pricing = pricing,

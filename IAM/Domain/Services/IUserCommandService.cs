@@ -50,4 +50,6 @@ public interface IUserCommandService
     Task<string> Handle(RefreshClaimsCommand command);
     Task Handle(SuspendUserAccountCommand command);
     Task Handle(ActivateUserAccountCommand command);
+    Task Handle(RequestPasswordResetCommand command);
+    Task Handle(ResetPasswordCommand command);
 }

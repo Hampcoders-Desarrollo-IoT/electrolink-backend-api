@@ -64,6 +64,7 @@ public class AnomalyCommandService(
             if (detected.Value.severity == EAnomalySeverity.Critical
                 && detected.Value.type == EAnomalyType.ShortCircuitRisk)
             {
+                anomaly.MarkAutoRelayActivated();
                 await Handle(new AutoIssueRelayCommandCommand(
                     stream.DeviceId.Value,
                     stream.PropertyId.Value,

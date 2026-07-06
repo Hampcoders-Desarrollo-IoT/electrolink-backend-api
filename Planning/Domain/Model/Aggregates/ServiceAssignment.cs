@@ -10,6 +10,7 @@ public class ServiceAssignment : BaseAggregateRoot
     public AssignmentId AssignmentId { get; private set; }
     public RequestId RequestId { get; private set; }
     public TechnicianId? TechnicianId { get; private set; }
+    public StaffMemberId? StaffMemberId { get; private set; }
     public RecipeSnapshot? RecipeSnapshot { get; private set; }
     public MatchingCriteria? MatchingCriteria { get; private set; }
     public MatchingScore? MatchingScore { get; private set; }
@@ -40,7 +41,26 @@ public class ServiceAssignment : BaseAggregateRoot
             RetryCount       = 0,
         };
         assignment.RaiseDomainEvent(new ServiceAutomaticallyAssignedEvent(
-            assignment.AssignmentId, requestId, technicianId, recipeSnapshot, DateTime.UtcNow, matchingCriteria.IsPriority , DateTime.UtcNow));
+            assignment.AssignmentId, requestId, technicianId, recipeSnapshot, DateTime.UtcNow, matchingCriteria.IsPriority, matchingCriteria.RequiresIoTCertifiedTechnician, DateTime.UtcNow));
+        return assignment;
+    }
+
+    public static ServiceAssignment AssignStaff(
+        RequestId requestId,
+        StaffMemberId staffMemberId,
+        MatchingCriteria matchingCriteria)
+    {
+        var assignment = new ServiceAssignment
+        {
+            AssignmentId     = AssignmentId.NewAssignmentId(),
+            RequestId        = requestId,
+            StaffMemberId    = staffMemberId,
+            MatchingCriteria = matchingCriteria,
+            Status           = EAssignmentStatus.Assigned,
+            RetryCount       = 0,
+        };
+        assignment.RaiseDomainEvent(new StaffAssignedToServiceEvent(
+            assignment.AssignmentId, requestId, staffMemberId, DateTime.UtcNow));
         return assignment;
     }
 

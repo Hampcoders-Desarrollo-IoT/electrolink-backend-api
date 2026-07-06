@@ -18,6 +18,9 @@ namespace Hampcoders.Electrolink.API.Profiles.Application.ACL;
 public class ProfilesContextFacade(
     IProfileQueryService profileQueryService,
     IProfileRepository profileRepository,
+    IStaffMemberCommandService staffMemberCommandService,
+    IStaffMemberQueryService staffMemberQueryService,
+    IStaffMemberRepository staffMemberRepository,
     IMediator mediator
 ) : IProfilesContextFacade
 {
@@ -139,5 +142,46 @@ public class ProfilesContextFacade(
         var integrationEvent = new ConsumptionThresholdsUpdatedIntegrationEvent(
             profile.UserId.Value, thresholds, DateTime.UtcNow);
         await mediator.Publish(integrationEvent);
+    }
+
+    // ── Staff Member Methods ─────────────────────────────────
+
+    public async Task<string?> CreateStaffMemberAsync(string userId, string firstName, string lastName, string? phoneNumber)
+    {
+        var createStaffCmd = new Domain.Model.Commands.CreateStaffMemberCommand(userId, firstName, lastName, phoneNumber);
+        await staffMemberCommandService.Handle(createStaffCmd);
+        var staffMember = await staffMemberRepository.FindByUserIdAsync(userId);
+        return staffMember?.Id.Value;
+    }
+
+    public async Task<(string Id, string UserId, string FirstName, string LastName, bool IsIoTCertified, string? Zone)?> GetStaffByUserIdAsync(string userId)
+    {
+        var staffMember = await staffMemberRepository.FindByUserIdAsync(userId);
+        if (staffMember is null) return null;
+
+        return (
+            staffMember.Id.Value,
+            staffMember.UserId.Value,
+            staffMember.FirstName,
+            staffMember.LastName,
+            staffMember.IsIoTCertified,
+            staffMember.AssignedZone?.Region
+        );
+    }
+
+    public async Task<IEnumerable<(string Id, string UserId, string FirstName, string LastName, bool IsIoTCertified)>> FindAvailableMakersInZoneAsync(
+        double latitude, double longitude, bool requireIoTCertification = false)
+    {
+        var makers = await staffMemberRepository.FindIoTCertifiedInZoneAsync(latitude, longitude);
+        if (requireIoTCertification)
+            makers = makers.Where(m => m.IsIoTCertified);
+
+        return makers.Select(m => (
+            m.Id.Value,
+            m.UserId.Value,
+            m.FirstName,
+            m.LastName,
+            m.IsIoTCertified
+        ));
     }
 }

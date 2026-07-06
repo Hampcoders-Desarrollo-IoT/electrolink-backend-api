@@ -115,4 +115,48 @@ public class AuthenticationController(IUserCommandService userCommandService) : 
             });
         }
     }
+
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [SwaggerOperation(
+        Summary = "Request password reset",
+        Description = "Sends a password reset token to the user's email. Returns 200 even if email not found (security).",
+        OperationId = "RequestPasswordReset")]
+    [SwaggerResponse(StatusCodes.Status200OK, "If the email exists, a reset token is generated.")]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid data")]
+    public async Task<IActionResult> ForgotPassword([FromBody] RequestPasswordResetResource resource)
+    {
+        try
+        {
+            var command = RequestPasswordResetCommandFromResourceAssembler.ToCommandFromResource(resource);
+            await userCommandService.Handle(command);
+            return Ok(new { message = "If the email exists, a reset link has been sent." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [SwaggerOperation(
+        Summary = "Reset password with token",
+        Description = "Resets the password using a valid reset token.",
+        OperationId = "ResetPassword")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Password reset successfully")]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid token or password policy violation")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordResource resource)
+    {
+        try
+        {
+            var command = ResetPasswordCommandFromResourceAssembler.ToCommandFromResource(resource);
+            await userCommandService.Handle(command);
+            return Ok(new { message = "Password reset successfully." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

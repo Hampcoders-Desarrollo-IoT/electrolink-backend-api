@@ -40,6 +40,7 @@ public class ServiceCatalog : BaseAggregateRoot
         string serviceName,
         string serviceDescription,
         EServiceCategory serviceCategory,
+        bool requiresIoTCertification,
         IReadOnlyList<ComponentRequirementItem> componentRequirements,
         EstimatedDuration estimatedDuration,
         ServicePricing pricing,
@@ -49,11 +50,12 @@ public class ServiceCatalog : BaseAggregateRoot
         IComponentTypeValidator componentTypeValidator)
     {
         EnsureNameIsUnique(serviceName);
-        componentTypeValidator.ValidateAll(componentRequirements);
+        if (componentRequirements.Count > 0)
+            componentTypeValidator.ValidateAll(componentRequirements);
 
         var recipe = ServiceRecipe.Create(
             CatalogId, TechnicianId, serviceName, serviceDescription,
-            serviceCategory, componentRequirements, estimatedDuration,
+            serviceCategory, requiresIoTCertification, componentRequirements, estimatedDuration,
             pricing, prerequisites, deliverables, warrantyPeriod);
 
         _recipes.Add(recipe);

@@ -20,7 +20,8 @@ public record ServiceCompletedEvent(
     IReadOnlyList<string> PhotosUrls,
     string WorkSummary,
     DateTime CompletedAt,
-    DateTime OccurredOn) : IEvent
+    DateTime OccurredOn,
+    bool IsStaffTechnician = false) : IEvent
 {
     public Guid EventId { get; init; } = Guid.NewGuid();
 }

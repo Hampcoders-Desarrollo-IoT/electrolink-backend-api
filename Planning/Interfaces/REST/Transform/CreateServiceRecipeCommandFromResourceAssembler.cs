@@ -17,7 +17,8 @@ public static class CreateServiceRecipeCommandFromResourceAssembler
             resource.ServiceName,
             resource.ServiceDescription,
             resource.ServiceCategory,
-            resource.ComponentRequirements
+            resource.RequiresIoTCertification,
+            (resource.ComponentRequirements ?? [])
                 .Select(cr => ComponentRequirementItem.Create(
                     cr.ComponentTypeId, string.Empty, cr.Quantity, cr.IsRequired))
                 .ToList(),

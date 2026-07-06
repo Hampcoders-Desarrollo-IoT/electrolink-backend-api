@@ -41,4 +41,6 @@ public interface IUserRepository : IBaseRepository<User, UserId>
      * <returns>A paginated list of users</returns>
      */
     Task<IEnumerable<User>> ListAsync(int page, int pageSize);
+
+    Task<User?> FindByPasswordResetTokenAsync(string resetToken);
 }

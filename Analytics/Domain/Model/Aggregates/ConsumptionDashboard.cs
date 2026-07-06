@@ -18,6 +18,7 @@ public class ConsumptionDashboard : BaseAggregateRoot
     public Money CostProjection { get; private set; }
     public DateTime LastUpdatedAt { get; private set; }
     public List<AlertLogId> AlertHistoryIds { get; private set; }
+    public SavingsMetrics Savings { get; private set; }
 
     private Dictionary<string, decimal> _consumptionThresholds;
 
@@ -41,6 +42,7 @@ public class ConsumptionDashboard : BaseAggregateRoot
             PlanTier = planTier,
             PeakHours = [],
             CostProjection = Money.Zero("PEN"),
+            Savings = SavingsMetrics.Create(),
             LastUpdatedAt = DateTime.UtcNow,
             AlertHistoryIds = [],
             _consumptionThresholds = new Dictionary<string, decimal>()

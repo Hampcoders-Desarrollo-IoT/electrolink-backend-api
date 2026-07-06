@@ -1,8 +1,10 @@
 namespace Hampcoders.Electrolink.API.IAM.Domain.Model.ValueObjects;
 
-public enum EUserRole
+public enum AccessRole
 {
     User,
     Admin,
-    SuperAdmin
+    SuperAdmin,
+    Maker,
+    FieldManager
 }

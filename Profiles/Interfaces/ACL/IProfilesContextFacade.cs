@@ -92,6 +92,13 @@ public interface IProfilesContextFacade
     /// Sets consumption thresholds for a company profile.
     /// </summary>
     Task SetConsumptionThresholdsAsync(string profileId, Dictionary<string, decimal> thresholds);
+
+    /// <summary>
+    /// Staff Member methods
+    /// </summary>
+    Task<string?> CreateStaffMemberAsync(string userId, string firstName, string lastName, string? phoneNumber);
+    Task<(string Id, string UserId, string FirstName, string LastName, bool IsIoTCertified, string? Zone)?> GetStaffByUserIdAsync(string userId);
+    Task<IEnumerable<(string Id, string UserId, string FirstName, string LastName, bool IsIoTCertified)>> FindAvailableMakersInZoneAsync(double latitude, double longitude, bool requireIoTCertification = false);
 }
 
 

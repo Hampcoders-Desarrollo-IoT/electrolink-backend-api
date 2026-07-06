@@ -271,6 +271,14 @@ public static class ModelBuilderExtensions
             .HasColumnName("assignment_id")
             .HasMaxLength(60);
 
+        builder.Entity<ServiceRequest>()
+            .Property(r => r.AssignedStaffMemberId)
+            .HasConversion(
+                id => id == null ? null : id.Value,
+                val => val == null ? null : StaffMemberId.From(val))
+            .HasColumnName("assigned_staff_member_id")
+            .HasMaxLength(60);
+
         builder.Entity<ServiceRequest>().Property(r => r.CreatedDate).HasColumnName("created_at").IsRequired();
         builder.Entity<ServiceRequest>().Property(r => r.UpdatedDate).HasColumnName("updated_at");
         builder.Entity<ServiceRequest>().Ignore(r => r.DomainEvents);
@@ -301,6 +309,14 @@ public static class ModelBuilderExtensions
                 val => val == null ? null : TechnicianId.From(val))
             .HasColumnName("technician_id")
             .HasMaxLength(100);
+
+        builder.Entity<ServiceAssignment>()
+            .Property(a => a.StaffMemberId)
+            .HasConversion(
+                id => id == null ? null : id.Value,
+                val => val == null ? null : StaffMemberId.From(val))
+            .HasColumnName("staff_member_id")
+            .HasMaxLength(60);
 
         builder.Entity<ServiceAssignment>()
             .Property(a => a.Status)

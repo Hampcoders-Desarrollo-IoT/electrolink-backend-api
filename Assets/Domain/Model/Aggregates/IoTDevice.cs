@@ -15,6 +15,7 @@ public class IoTDevice : BaseAggregateRoot
     public PropertyId? AssignedPropertyId { get; private set; }
     public InstallationRequestId? InstallationRequestId { get; private set; }
     public TechnicianId? InstalledByTechnicianId { get; private set; }
+    public StaffMemberId? InstalledByStaffMemberId { get; private set; }
     public DateTime? InstalledAt { get; private set; }
     public EConnectionStatus ConnectionStatus { get; private set; }
     public DateTime? LastReadingAt { get; private set; }
@@ -81,6 +82,27 @@ public class IoTDevice : BaseAggregateRoot
         RaiseDomainEvent(new DeviceInstalledEvent(
             Id.Value, SerialNumber.Value, propertyId.Value,
             technicianId.Value, InstallationRequestId!.Value,
+            firmwareVersion, installedAt));
+    }
+
+    public void RecordInstallation(StaffMemberId staffMemberId, PropertyId propertyId, string firmwareVersion, DateTime installedAt)
+    {
+        if (Status != EDeviceStatus.Assigned)
+            throw new InvalidOperationException(
+                $"Device must be ASSIGNED to record installation. Current status: {Status}");
+
+        if (AssignedPropertyId is null || AssignedPropertyId.Value != propertyId.Value)
+            throw new InvalidOperationException(
+                "PropertyId does not match the assigned property of this device.");
+
+        InstalledByStaffMemberId = staffMemberId;
+        InstalledAt = installedAt;
+        FirmwareVersion = firmwareVersion;
+        Status = EDeviceStatus.Installed;
+
+        RaiseDomainEvent(new DeviceInstalledEvent(
+            Id.Value, SerialNumber.Value, propertyId.Value,
+            staffMemberId.Value, InstallationRequestId!.Value,
             firmwareVersion, installedAt));
     }
 

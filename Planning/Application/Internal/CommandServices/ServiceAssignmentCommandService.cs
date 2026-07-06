@@ -24,6 +24,39 @@ public class ServiceAssignmentCommandService(
     ILogger<ServiceAssignmentCommandService> logger)
     : IServiceAssignmentCommandService
 {
+    public async Task Handle(AssignStaffToServiceCommand command)
+    {
+        var request = await requestRepository.FindByIdAsync(command.RequestId)
+            ?? throw new InvalidOperationException($"ServiceRequest {command.RequestId.Value} not found.");
+
+        var staffMemberId = Shared.Domain.Model.ValueObjects.StaffMemberId.From(command.StaffMemberId);
+
+        var geo = request.Geolocation ?? Geolocation.Create(0, 0, null, "DEFAULT");
+        var criteria = MatchingCriteria.Create(geo, new List<string>(), request.IsPriority, request.RequiresIoTCertifiedTechnician);
+
+        var assignment = ServiceAssignment.AssignStaff(
+            request.RequestId,
+            staffMemberId,
+            criteria);
+
+        request.MarkAsAssignedToStaff(assignment.AssignmentId, staffMemberId);
+
+        await assignmentRepository.AddAsync(assignment);
+        requestRepository.Update(request);
+        await unitOfWork.CompleteAsync();
+
+        foreach (var domainEvent in request.DomainEvents)
+            await mediator.Publish(domainEvent, CancellationToken.None);
+        request.ClearDomainEvents();
+
+        foreach (var domainEvent in assignment.DomainEvents)
+            await mediator.Publish(domainEvent, CancellationToken.None);
+        assignment.ClearDomainEvents();
+
+        logger.LogInformation("[Planning] Staff member {StaffId} assigned to service request {RequestId}",
+            command.StaffMemberId, command.RequestId.Value);
+    }
+
     public async Task Handle(ExecuteMatchingAlgorithmCommand command)
     {
         var request = await requestRepository.FindByIdAsync(RequestId.From(command.RequestId.Value)) ?? throw new InvalidOperationException($"ServiceRequest with ID {command.RequestId.Value} not found.");
@@ -66,6 +99,7 @@ public class ServiceAssignmentCommandService(
             request.Geolocation,
             result.BestCandidate.Recipe.ComponentRequirements.Select(c => c.ComponentTypeId).ToList(),
             request.IsPriority,
+            request.RequiresIoTCertifiedTechnician,
             TechnicianId.From(result.BestCandidate.TechnicianId));
 
         var assignment = ServiceAssignment.Assign(
@@ -122,6 +156,13 @@ public class ServiceAssignmentCommandService(
                 .ToList();
 
             var technicianId = tech.technicianId;
+
+            if (requirements.Count == 0)
+            {
+                stockTasks.Add(Task.FromResult((technicianId, 0.0, (ServiceRecipe?)recipe, true)));
+                continue;
+            }
+
             stockTasks.Add(externalAssetsService.CheckComponentStockAsync(technicianId, requirements)
                 .ContinueWith(t => (technicianId, 0.0, (ServiceRecipe?)recipe, t.Result)));
         }

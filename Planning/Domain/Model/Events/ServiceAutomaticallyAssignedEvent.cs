@@ -11,6 +11,7 @@ public record ServiceAutomaticallyAssignedEvent(
     RecipeSnapshot RecipeSnapshot,
     DateTime ScheduledAt,
     bool IsPriority,
+    bool RequiresIoTCertifiedTechnician,
     DateTime OccurredOn
 ) : IEvent
 {
