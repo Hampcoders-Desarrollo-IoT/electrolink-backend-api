@@ -30,7 +30,7 @@ public class BaseRepository<TEntity, TId> : IBaseRepository<TEntity, TId> where 
       await Context.Set<TEntity>().AddAsync(entity);
    }
 
-   public async Task<TEntity?> FindByIdAsync(TId id)
+   public virtual async Task<TEntity?> FindByIdAsync(TId id)
    {
       return await Context.Set<TEntity>().FindAsync(id);
    }
