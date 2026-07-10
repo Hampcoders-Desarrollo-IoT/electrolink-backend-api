@@ -9,7 +9,6 @@ using Hampcoders.Electrolink.API.Profiles.Domain.Services;
 using Hampcoders.Electrolink.API.Profiles.Interfaces.ACL;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace Hampcoders.Electrolink.API.Profiles.Application.ACL;
 
@@ -22,8 +21,7 @@ public class ProfilesContextFacade(
     IStaffMemberCommandService staffMemberCommandService,
     IStaffMemberQueryService staffMemberQueryService,
     IStaffMemberRepository staffMemberRepository,
-    IMediator mediator,
-    ILogger<ProfilesContextFacade> logger
+    IMediator mediator
 ) : IProfilesContextFacade
 {
     public async Task<string?> GetTechnicianIdByUserIdAsync(string userId)
@@ -141,33 +139,9 @@ public class ProfilesContextFacade(
         if (profile is null)
             throw new ArgumentException($"Profile {profileId} not found.");
 
-        try
-        {
-            var ownerId = profile.BusinessRole switch
-            {
-                EBusinessRole.HomeOwner => profile.Homeowner?.HomeownerId.Value,
-                EBusinessRole.Company => profile.Company?.CompanyId.Value,
-                _ => null
-            };
-
-            if (ownerId is null)
-            {
-                logger.LogWarning(
-                    "Cannot publish ConsumptionThresholdsUpdated event for profile {ProfileId}: profile has no owner (role={Role}).",
-                    profileId, profile.BusinessRole);
-                return;
-            }
-
-            var integrationEvent = new ConsumptionThresholdsUpdatedIntegrationEvent(
-                ownerId, thresholds, DateTime.UtcNow);
-            await mediator.Publish(integrationEvent);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex,
-                "Failed to publish ConsumptionThresholdsUpdated event for profile {ProfileId}. " +
-                "Thresholds will be applied when profile is completed.", profileId);
-        }
+        var integrationEvent = new ConsumptionThresholdsUpdatedIntegrationEvent(
+            profile.UserId.Value, thresholds, DateTime.UtcNow);
+        await mediator.Publish(integrationEvent);
     }
 
     // ── Staff Member Methods ─────────────────────────────────

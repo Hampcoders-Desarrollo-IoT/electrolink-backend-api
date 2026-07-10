@@ -169,7 +169,7 @@ public class DeviceReadingStreamCommandService(
 
     public async Task Handle(UpdateCustomThresholdsCommand command)
     {
-        var streams = await streamRepository.FindByOwnerAsync(ClientIdentity.FromOwnerId(command.OwnerId));
+        var streams = await streamRepository.FindByOwnerAsync(ClientIdentity.FromHomeowner(command.OwnerId));
 
         foreach (var stream in streams)
         {

@@ -12,17 +12,18 @@ public class ConsumptionThresholdsUpdatedEventHandler(
 {
     public async Task Handle(ConsumptionThresholdsUpdatedIntegrationEvent notification, CancellationToken cancellationToken)
     {
-        var t = notification.Thresholds;
         logger.LogInformation("[IoT] ThresholdsUpdated event received for OwnerId: {OwnerId}, thresholdCount: {Count}",
-            notification.OwnerId, t.Count);
+            notification.OwnerId, notification.Thresholds.Count);
+
+        var high = notification.Thresholds.TryGetValue("High", out var h) ? h : 0m;
 
         await commandService.Handle(new UpdateCustomThresholdsCommand(
             notification.OwnerId,
-            t.TryGetValue("nominalVoltage", out var nv) ? (float)nv : 220f,
-            t.TryGetValue("maxConsumptionWatts", out var mcw) ? (float)mcw : 5000f,
-            t.TryGetValue("maxCurrentAmps", out var mca) ? (float)mca : 20f,
-            t.TryGetValue("minPowerFactor", out var mpf) ? (float)mpf : 0.85f,
-            t.TryGetValue("nominalFrequency", out var nf) ? (float)nf : 60f,
-            t.TryGetValue("disconnectionThresholdMin", out var dtm) ? (int)dtm : 10));
+            220f,
+            (float)high,
+            20f,
+            0.85f,
+            60f,
+            10));
     }
 }

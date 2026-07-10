@@ -4,7 +4,6 @@ using Hampcoders.Electrolink.API.Profiles.Application.Internal.OutboundServices;
 using Hampcoders.Electrolink.API.Profiles.Application.Internal.QueryServices;
 using Hampcoders.Electrolink.API.Profiles.Domain.Repositories;
 using Hampcoders.Electrolink.API.Profiles.Domain.Services;
-using Hampcoders.Electrolink.API.Profiles.Infrastructure.ExternalProviders;
 using Hampcoders.Electrolink.API.Profiles.Infrastructure.Interfaces.ASP.Configuration.Extensions.Filters;
 using Hampcoders.Electrolink.API.Profiles.Infrastructure.Persistence.EFC.Repositories;
 using Hampcoders.Electrolink.API.Profiles.Infrastructure.Persistence.EFC.Services;
@@ -28,11 +27,5 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddScoped<IStaffMemberRepository, StaffMemberRepository>();
         builder.Services.AddScoped<IStaffMemberCommandService, StaffMemberCommandService>();
         builder.Services.AddScoped<IStaffMemberQueryService, StaffMemberQueryService>();
-
-        // Device Onboarding
-        builder.Services.Configure<ProfilesAISettings>(
-            builder.Configuration.GetSection(ProfilesAISettings.SectionName));
-        builder.Services.AddHttpClient();
-        builder.Services.AddScoped<IDeviceOnboardingService, DeviceOnboardingService>();
     }
 }
