@@ -128,6 +128,15 @@ public class ProfileRepository(AppDbContext context)
       .FirstOrDefaultAsync(p => p.Homeowner != null && p.Homeowner.HomeownerId == homeownerId);
   }
 
+  public override async Task<Profile?> FindByIdAsync(ProfileId id)
+  {
+    return await Context.Set<Profile>()
+      .Include(p => p.Homeowner)
+      .Include(p => p.Technician)
+      .Include(p => p.Company)
+      .FirstOrDefaultAsync(p => p.ProfileId == id);
+  }
+
   public async Task<Profile?> FindByUserIdAsync(UserId userId)
   {
     return await Context.Set<Profile>()
