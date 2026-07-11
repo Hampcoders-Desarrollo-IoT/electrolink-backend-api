@@ -15,7 +15,7 @@ public class ConsumptionThresholdsUpdatedEventHandler(
     ILogger<ConsumptionThresholdsUpdatedEventHandler> logger)
     : INotificationHandler<ConsumptionThresholdsUpdatedIntegrationEvent>
 {
-    private const string DemoDeviceId = "electrolink-esp32-01";
+    private const string DemoDeviceId = "dev-electrolink-esp32-01";
 
     public async Task Handle(ConsumptionThresholdsUpdatedIntegrationEvent notification, CancellationToken cancellationToken)
     {
