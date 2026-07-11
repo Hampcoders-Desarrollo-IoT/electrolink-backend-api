@@ -22,6 +22,19 @@ public class RequestAuthorizationMiddleware(RequestDelegate next)
             return;
         }
 
+        // Permitir acceso con X-Api-Key para Edge API
+        var apiKey = context.Request.Headers["X-Api-Key"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(apiKey))
+        {
+            var config = context.RequestServices.GetRequiredService<IConfiguration>();
+            var configuredKey = config["EdgeApi:ApiKey"];
+            if (!string.IsNullOrEmpty(configuredKey) && apiKey == configuredKey)
+            {
+                await next(context);
+                return;
+            }
+        }
+
         var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
         if (string.IsNullOrEmpty(token))
