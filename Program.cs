@@ -210,6 +210,8 @@ using (var scope = app.Services.CreateScope())
 // Middleware
 app.UseForwardedHeaders();
 app.UseCors("AllowAllPolicy");
+app.UseSwagger();
+app.UseSwaggerUI();
 
 if (app.Environment.IsDevelopment())
 {
@@ -220,8 +222,6 @@ app.UseAuthentication();
 app.UseRequestAuthorization();
 app.UseAuthorization();
 app.MapControllers();
-app.UseSwagger();
-app.UseSwaggerUI();
 
 // Uncomment the following line to enable OpenAPI documentation (Development Server)
 // app.Urls.Add("http://*:8088");
