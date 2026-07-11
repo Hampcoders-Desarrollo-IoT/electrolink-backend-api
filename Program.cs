@@ -30,6 +30,7 @@ using Npgsql;
 using Hampcoders.Electrolink.API.Shared.Infrastructure;
 using Hampcoders.Electrolink.API.Shared.Infrastructure.Authorization;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,12 +105,14 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // Servidor local de desarrollo
-    options.AddServer(new OpenApiServer
+    if (builder.Environment.IsDevelopment())
     {
-        Url         = "http://localhost:5055",
-        Description = "Development Server"
-    });
+        options.AddServer(new OpenApiServer
+        {
+            Url         = "http://localhost:5055",
+            Description = "Development Server"
+        });
+    }
 });
 
 
@@ -187,6 +190,13 @@ builder.Services.AddMediatR(
 
 builder.Services.AddScoped<IAuthorizationHandler, SubscriptionTierHandler>();
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 // DB Init
@@ -198,15 +208,14 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Middleware
+app.UseForwardedHeaders();
+app.UseCors("AllowAllPolicy");
+
 if (app.Environment.IsDevelopment())
 {
-    // Uncomment the following lines to enable Swagger in development
-    app.UseSwagger();
-    app.UseSwaggerUI();
-} 
+    app.UseHttpsRedirection();
+}
 
-app.UseCors("AllowAllPolicy");
-app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseRequestAuthorization();
 app.UseAuthorization();
