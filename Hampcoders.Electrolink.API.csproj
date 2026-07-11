@@ -82,7 +82,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Planning\Infrastructure\ExternalProviders\Prompts\matching-system-prompt.txt">
+      <None Update="**\Prompts\*.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
