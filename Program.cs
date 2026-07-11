@@ -211,6 +211,8 @@ app.UseAuthentication();
 app.UseRequestAuthorization();
 app.UseAuthorization();
 app.MapControllers();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // Uncomment the following line to enable OpenAPI documentation (Development Server)
 // app.Urls.Add("http://*:8088");
