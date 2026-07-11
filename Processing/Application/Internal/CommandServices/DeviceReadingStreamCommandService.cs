@@ -5,7 +5,6 @@ using Hampcoders.Electrolink.API.Processing.Domain.Model.Events;
 using Hampcoders.Electrolink.API.Processing.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Processing.Domain.Repositories;
 using Hampcoders.Electrolink.API.Processing.Domain.Services;
-using Hampcoders.Electrolink.API.Processing.Application.Internal.OutboundServices;
 using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
 using Hampcoders.Electrolink.API.Shared.Domain.Repositories;
 using MediatR;
@@ -15,7 +14,6 @@ namespace Hampcoders.Electrolink.API.Processing.Application.Internal.CommandServ
 public class DeviceReadingStreamCommandService(
     IDeviceReadingStreamRepository streamRepository,
     IAnomalyCommandService         anomalyService,
-    IAssetsContextFacade           assetsFacade,
     IUnitOfWork                    unitOfWork,
     IMediator                      mediator,
     ILogger<DeviceReadingStreamCommandService> logger)
@@ -23,18 +21,16 @@ public class DeviceReadingStreamCommandService(
 {
     public async Task<bool> Handle(IngestDeviceReadingCommand command)
     {
-        var deviceInfo = await assetsFacade.GetInstalledDeviceInfoAsync(command.DeviceId);
-        if (deviceInfo is null || deviceInfo.Status != "INSTALLED")
-        {
-            logger.LogWarning("[IoT] ReadingRejected — DeviceId: {DeviceId} not INSTALLED.", command.DeviceId);
-            return false;
-        }
-
         var stream = await streamRepository.FindByDeviceIdAsync(command.DeviceId);
         if (stream is null)
         {
-            logger.LogWarning("[IoT] ReadingRejected — No stream found for DeviceId: {DeviceId}.", command.DeviceId);
-            return false;
+            logger.LogInformation("[IoT] Auto-creating stream for unknown device {DeviceId}.", command.DeviceId);
+            stream = DeviceReadingStream.Create(
+                DeviceId.From(command.DeviceId),
+                PropertyId.From("prop-edge-default"),
+                ClientIdentity.FromHomeowner("ho-edge-default"));
+            await streamRepository.AddAsync(stream);
+            await unitOfWork.CompleteAsync();
         }
 
         Reading reading;

@@ -80,8 +80,8 @@ public class EdgeIngestionController(
         // Auto-create a demo stream if one doesn't exist (Expo / Wokwi scenario)
         if (stream is null)
         {
-            var propertyId = PropertyId.From("demo-property");
-            var owner      = ClientIdentity.FromHomeowner("demo-owner");
+            var propertyId = PropertyId.From("prop-demo");
+            var owner      = ClientIdentity.FromHomeowner("ho-demo-owner");
             stream = DeviceReadingStream.Create(
                 Shared.Domain.Model.ValueObjects.DeviceId.From(deviceId),
                 propertyId, owner);
