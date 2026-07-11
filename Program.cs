@@ -218,6 +218,8 @@ if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+app.UseCors("AllowAllPolicy");
+//app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseRequestAuthorization();
 app.UseAuthorization();

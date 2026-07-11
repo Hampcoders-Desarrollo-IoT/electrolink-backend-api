@@ -176,7 +176,8 @@ public class DeviceReadingStreamCommandService(
             var thresholds = ThresholdConfig.Create(
                 command.NominalVoltage, command.MaxConsumptionWatts,
                 command.MaxCurrentAmps, command.MinPowerFactor,
-                command.NominalFrequency, command.DisconnectionThresholdMin);
+                command.NominalFrequency, command.DisconnectionThresholdMin,
+                command.NormalLimitAmps, command.AlertLimitAmps);
 
             stream.UpdateCustomThresholds(thresholds);
             await streamRepository.UpdateAsync(stream);

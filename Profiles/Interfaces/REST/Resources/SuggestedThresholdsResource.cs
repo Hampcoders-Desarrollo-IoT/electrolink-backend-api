@@ -6,5 +6,7 @@ public record SuggestedThresholdsResource(
     float MaxCurrentAmps,
     float MinPowerFactor,
     float NominalFrequency,
-    int DisconnectionThresholdMin
+    int DisconnectionThresholdMin,
+    float NormalLimitAmps = 0.20f,
+    float AlertLimitAmps = 0.60f
 );

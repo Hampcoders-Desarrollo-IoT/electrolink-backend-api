@@ -15,6 +15,8 @@ REGLAS PARA UMBRALES:
 4. minPowerFactor: entre 0.70 y 0.95 según el tipo
 5. nominalFrequency: 50Hz para 220V, 60Hz para 110V/380V
 6. disconnectionThresholdMin: mínimo 5 minutos
+7. normalLimitAmps: corriente típica en operación normal (~50-70% de maxCurrentAmps)
+8. alertLimitAmps: corriente máxima antes de peligro (~80-90% de maxCurrentAmps, debe ser mayor a normalLimitAmps)
 
 Responde EXCLUSIVAMENTE con este JSON sin markdown ni texto adicional:
 {
@@ -26,6 +28,8 @@ Responde EXCLUSIVAMENTE con este JSON sin markdown ni texto adicional:
     "maxCurrentAmps": 16.0,
     "minPowerFactor": 0.85,
     "nominalFrequency": 60,
-    "disconnectionThresholdMin": 10
+    "disconnectionThresholdMin": 10,
+    "normalLimitAmps": 10.0,
+    "alertLimitAmps": 14.0
   }
 }

@@ -64,6 +64,10 @@ public class DeviceReadingStreamConfiguration : IEntityTypeConfiguration<DeviceR
                 .HasColumnName("threshold_nominal_frequency").IsRequired();
             tc.Property(x => x.DisconnectionThresholdMin)
                 .HasColumnName("threshold_disconnection_min").IsRequired();
+            tc.Property(x => x.NormalLimitAmps)
+                .HasColumnName("threshold_normal_limit_amps").IsRequired();
+            tc.Property(x => x.AlertLimitAmps)
+                .HasColumnName("threshold_alert_limit_amps").IsRequired();
         });
 
         builder.Property(s => s.CreatedDate).HasColumnName("created_at").IsRequired();
