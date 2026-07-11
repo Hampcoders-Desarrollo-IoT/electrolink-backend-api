@@ -1,7 +1,12 @@
+using Hampcoders.Electrolink.API.Processing.Domain.Model.Aggregates;
 using Hampcoders.Electrolink.API.Processing.Domain.Model.Commands;
+using Hampcoders.Electrolink.API.Processing.Domain.Model.ValueObjects;
+using Hampcoders.Electrolink.API.Processing.Domain.Repositories;
 using Hampcoders.Electrolink.API.Processing.Domain.Services;
 using Hampcoders.Electrolink.API.Processing.Infrastructure.Pipeline.Middleware.Attributes;
 using Hampcoders.Electrolink.API.Processing.Interfaces.REST.Resources;
+using Hampcoders.Electrolink.API.Shared.Domain.Model.ValueObjects;
+using Hampcoders.Electrolink.API.Shared.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -13,7 +18,10 @@ namespace Hampcoders.Electrolink.API.Processing.Interfaces.REST;
 [RequireEdgeApiKey]
 public class EdgeIngestionController(
     IDeviceReadingStreamCommandService streamService,
-    IRelayCommandService               relayService) : ControllerBase
+    IRelayCommandService               relayService,
+    IDeviceReadingStreamRepository     streamRepository,
+    IUnitOfWork                        unitOfWork,
+    ILogger<EdgeIngestionController>   logger) : ControllerBase
 {
     [HttpPost("readings")]
     [SwaggerOperation(Summary = "Receive a sensor reading from the Edge API", OperationId = "IngestReading")]
@@ -59,5 +67,38 @@ public class EdgeIngestionController(
             return NoContent();
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpGet("devices/{deviceId}/thresholds")]
+    [SwaggerOperation(Summary = "Get device thresholds for Edge sync", OperationId = "GetDeviceThresholds")]
+    [ProducesResponseType(typeof(DeviceThresholdResource), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetDeviceThresholds(string deviceId)
+    {
+        var stream = await streamRepository.FindByDeviceIdAsync(deviceId);
+
+        // Auto-create a demo stream if one doesn't exist (Expo / Wokwi scenario)
+        if (stream is null)
+        {
+            var propertyId = PropertyId.From("demo-property");
+            var owner      = ClientIdentity.FromHomeowner("demo-owner");
+            stream = DeviceReadingStream.Create(
+                Shared.Domain.Model.ValueObjects.DeviceId.From(deviceId),
+                propertyId, owner);
+            await streamRepository.AddAsync(stream);
+            await unitOfWork.CompleteAsync();
+            logger.LogInformation("[Edge] Auto-created demo stream for device {DeviceId}.", deviceId);
+        }
+
+        var t = stream.CustomThresholds;
+        var result = new DeviceThresholdResource(
+            deviceId,
+            new DeviceThresholdValues(
+                t.NormalLimitAmps, t.AlertLimitAmps,
+                t.NominalVoltage, t.MaxConsumptionWatts,
+                t.MaxCurrentAmps, t.MinPowerFactor,
+                t.NominalFrequency, t.DisconnectionThresholdMin)
+        );
+        return Ok(result);
     }
 }
